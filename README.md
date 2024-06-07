@@ -1,2 +1,2 @@
-# forecasting-emergence
+# emergence-forecasting-chaos
 phd Thesis
