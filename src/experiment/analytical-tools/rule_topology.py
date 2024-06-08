@@ -1,5 +1,6 @@
 #TODO: tidy this up
 
+from copy import deepcopy
 from numpy.linalg import norm
 from numpy import arccos, ones_like, ndarray, cos
 
@@ -34,32 +35,52 @@ def density_from_configuration(configuration:list[int]) -> float:
 from eca import OneDimensionalElementaryCellularAutomata
 from matplotlib.pyplot import imshow, plot, show, xlabel, ylabel, bar, quiver
 from matplotlib.colors import LinearSegmentedColormap
+
 rule = 3
-T = 4
+T = 10
 width = 100
-n_ics = 1000
-ca =  OneDimensionalElementaryCellularAutomata(lattice_width=width)
-for _ in range(T):
-    ca.transition(rule_number=rule)
-refpoint = ca.evolution()[0]
+
 ["m","tab:brown","c","g","b"]
 cmap = LinearSegmentedColormap.from_list("", ["y","tab:orange","r","tab:pink","tab:purple","tab:blue","tab:gray"])
 
-for _ in range(n_ics):
-    xs = [
-        angle(x=row)#,origin=refpoint) 
-        for row in ca.evolution()
-    ]
-    us = [y-x for x,y in zip(xs[:-1],xs[1:])]
-    us_normalised = normalise(values=us)
-    arrow_colours = [cmap((u**2+v**2)/2) for u,v in zip(us_normalised[:-1],us_normalised[1:])]
+even_indexes = range(0,width,2)
+odd_indexes = range(1,width,2)
+initial_configuration = [0 for _ in range(width)]
+initial_configuration_ = deepcopy(initial_configuration)
 
-    quiver(xs[:-2],xs[1:-1],us[:-1],us[1:],color=arrow_colours)
-    #plot(xs)
+ic = ''.join(map(str,initial_configuration_))
+ca =  OneDimensionalElementaryCellularAutomata(
+    lattice_width=width,
+    initial_configuration= ic
+)
+for _ in range(T):
+    ca.transition(rule_number=rule,)
+refpoint = ca.evolution()[0]
 
-    ca =  OneDimensionalElementaryCellularAutomata(lattice_width=width)
-    for _ in range(T):
-        ca.transition(rule_number=rule)
+for i in even_indexes:
+    initial_configuration[i] = 1
+    initial_configuration_ = deepcopy(initial_configuration)
+    for j in odd_indexes:
+        initial_configuration_[j] = 1
+        xs = [
+            angle(x=row)#,origin=refpoint) 
+            for row in ca.evolution()
+        ]
+        us = [y-x for x,y in zip(xs[:-1],xs[1:])]
+        us_normalised = normalise(values=us)
+        arrow_colours = [cmap((u**2+v**2)/2) for u,v in zip(us_normalised[:-1],us_normalised[1:])]
+
+        quiver(xs[:-2],xs[1:-1],us[:-1],us[1:],color=arrow_colours)
+
+        ic = ''.join(map(str,initial_configuration_))
+        ca =  OneDimensionalElementaryCellularAutomata(
+            lattice_width=width,
+            initial_configuration= ic
+        )
+        for _ in range(T):
+            ca.transition(rule_number=rule)
+
+
 
 
 xlabel("theta(t)")
