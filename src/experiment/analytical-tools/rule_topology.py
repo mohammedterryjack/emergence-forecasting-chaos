@@ -54,8 +54,7 @@ ca =  OneDimensionalElementaryCellularAutomata(
     initial_configuration= ic
 )
 for _ in range(T):
-    ca.transition(rule_number=rule,)
-refpoint = ca.evolution()[0]
+    ca.transition(rule_number=rule)
 
 for i in even_indexes:
     initial_configuration[i] = 1
@@ -63,12 +62,13 @@ for i in even_indexes:
     for j in odd_indexes:
         initial_configuration_[j] = 1
         xs = [
-            angle(x=row)#,origin=refpoint) 
+            angle(x=row)
             for row in ca.evolution()
         ]
         us = [y-x for x,y in zip(xs[:-1],xs[1:])]
         us_normalised = normalise(values=us)
-        arrow_colours = [cmap((u**2+v**2)/2) for u,v in zip(us_normalised[:-1],us_normalised[1:])]
+        #arrow_colours = [cmap((u**2+v**2)/2) for u,v in zip(us_normalised[:-1],us_normalised[1:])]
+        arrow_colours = [cmap(index/len(us)) for index in range(len(us))]
 
         quiver(xs[:-2],xs[1:-1],us[:-1],us[1:],color=arrow_colours)
 
@@ -87,77 +87,8 @@ xlabel("theta(t)")
 ylabel("theta(t+1)")
 show()
 
-
-
-# all_angles, all_derivatives = [],[]
-# density_frequency = {}
-# for n in range(500):
-#     if 0 <= n < 100:
-#         i = "1"*n + "0"*(100-n)
-#         ca = OneDimensionalElementaryCellularAutomata(lattice_width=100, initial_configuration=i)
-#     elif 100 <= n < 200:
-#         m = n-100
-#         i = "0"*m + "1"*(100-m)
-#         ca = OneDimensionalElementaryCellularAutomata(lattice_width=100, initial_configuration=i)
-#     else:
-#         ca = OneDimensionalElementaryCellularAutomata(lattice_width=100)
-#     p = density_from_configuration(configuration=ca.numpy())
-#     if p not in density_frequency:
-#         density_frequency[p] = 0 
-#     density_frequency[p] += 1
-
-#     for _ in range(100):
-#         ca.transition(rule_number=3)
-#     #imshow(ca.evolution(), cmap='grey')
-#     #show()
-
-#     theta_prior = 0.0
-#     angles, derivatives = [],[]
-#     for row in ca.evolution():
-#         theta = angle(x=row)
-#         angles.append(theta)
-#         #derivatives.append(theta_d)
-#         #derivatives.append(theta_prior - theta)
-#         derivatives.append(theta_prior)
-#         theta_prior = theta
-
-#     all_angles.extend(angles)
-#     all_derivatives.extend(derivatives)
-
-#     #plot(angles)
-#     #plot(derivatives)
-#     plot(angles,derivatives,'-->')
-# xlabel('theta')
-# ylabel('dtheta/dt')
-# show()
-
-# bar(density_frequency.keys(), density_frequency.values())
-# xlabel('density')
-# ylabel('frequency')
-# show()
-
-
-
-
-# angle_directions = [
-#     0.1*(a-b) for a,b in zip(all_angles[1:],all_angles[:-1])
-# ]
-# derivative_directions = [
-#     0.1*(a-b) for a,b in zip(all_derivatives[1:],all_derivatives[:-1])
-# ]
-# colours = [
-#     (abs(r),abs(g),(abs(r)+abs(g))/2) for r,g in zip(angle_directions, derivative_directions)
-# ]
-
-# quiver(
-#     all_angles[:-1], all_derivatives[:-1], 
-#     angle_directions, derivative_directions,
-#     scale = 5,
-#     color=colours
-# )
-# show()
-
-
+#TODO: draw route of single trajectory on top of this
+#TODO: draw streamplot
 
 # from numpy import arange, meshgrid, array
 # from matplotlib.pyplot import streamplot
