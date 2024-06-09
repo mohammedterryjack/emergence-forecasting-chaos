@@ -3,11 +3,10 @@
 from copy import deepcopy
 from numpy.linalg import norm
 from numpy import arccos, ones_like, ndarray, cos
-
-def normalise(values:list[float]) -> list[float]:
-    minX = min(values)
-    rangeX = max(values)-min(values)
-    return [(x-minX)/rangeX for x in values]
+from random import choice
+from eca import OneDimensionalElementaryCellularAutomata
+from matplotlib.pyplot import plot, show, xlabel, ylabel, quiver, title
+from matplotlib.colors import LinearSegmentedColormap
 
 def cosine_similarity(a:ndarray, b:ndarray) -> float:
     result = a @ b.T
@@ -32,10 +31,6 @@ def density_from_configuration(configuration:list[int]) -> float:
     density = sum(configuration)/xnorm
     return round(density,2)
 
-from eca import OneDimensionalElementaryCellularAutomata
-from matplotlib.pyplot import imshow, plot, show, xlabel, ylabel, bar, quiver
-from matplotlib.colors import LinearSegmentedColormap
-
 rule = 3
 T = 10
 width = 100
@@ -56,6 +51,7 @@ ca =  OneDimensionalElementaryCellularAutomata(
 for _ in range(T):
     ca.transition(rule_number=rule)
 
+
 for i in even_indexes:
     initial_configuration[i] = 1
     initial_configuration_ = deepcopy(initial_configuration)
@@ -66,8 +62,6 @@ for i in even_indexes:
             for row in ca.evolution()
         ]
         us = [y-x for x,y in zip(xs[:-1],xs[1:])]
-        us_normalised = normalise(values=us)
-        #arrow_colours = [cmap((u**2+v**2)/2) for u,v in zip(us_normalised[:-1],us_normalised[1:])]
         arrow_colours = [cmap(index/len(us)) for index in range(len(us))]
 
         quiver(xs[:-2],xs[1:-1],us[:-1],us[1:],color=arrow_colours)
@@ -80,9 +74,29 @@ for i in even_indexes:
         for _ in range(T):
             ca.transition(rule_number=rule)
 
+initial_configuration = [0 for _ in range(width)]
+initial_configuration_ = deepcopy(initial_configuration)
+max_even = choice(even_indexes)
+max_odd = choice(odd_indexes)
+for i in range(0,max_even,2):
+    initial_configuration[i] = 1
+    initial_configuration_ = deepcopy(initial_configuration)
+    for j in range(0,max_odd,2):
+        initial_configuration_[j] = 1
+ic = ''.join(map(str,initial_configuration_))
+ca =  OneDimensionalElementaryCellularAutomata(
+    lattice_width=width,
+    initial_configuration= ic
+)
+for _ in range(T):
+    ca.transition(rule_number=rule)
+xs = [
+    angle(x=row)
+    for row in ca.evolution()
+]
 
-
-
+title(ic)
+plot(xs[:-1],xs[1:],'-->',color='red')
 xlabel("theta(t)")
 ylabel("theta(t+1)")
 show()
