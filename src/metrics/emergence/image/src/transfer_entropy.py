@@ -18,4 +18,4 @@ class TransferEntropy:
             y_,
             x_
         )
-        return array(result)
+        return result #array(result)
