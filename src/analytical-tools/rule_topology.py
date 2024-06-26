@@ -1,4 +1,6 @@
 #TODO: tidy this up
+#TODO: keep dimension / lattice width small
+#TODO:  project to 2d using PCA
 
 from copy import deepcopy
 from numpy.linalg import norm
@@ -32,8 +34,8 @@ def density_from_configuration(configuration:list[int]) -> float:
     return round(density,2)
 
 rule = 3
-T = 10
-width = 100
+T = 4
+width = 10
 
 ["m","tab:brown","c","g","b"]
 cmap = LinearSegmentedColormap.from_list("", ["y","tab:orange","r","tab:pink","tab:purple","tab:blue","tab:gray"])
