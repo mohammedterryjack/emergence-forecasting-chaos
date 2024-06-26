@@ -1,0 +1,5 @@
+JPype1
+eca
+numpy
+matplotlib
+nicegui

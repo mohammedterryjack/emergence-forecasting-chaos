@@ -1,5 +1,8 @@
-from jpype import JArray, JInt, JPackage
+from jpype import JArray, JInt, JPackage, startJVM, getDefaultJVMPath
 from numpy import ndarray, array
+
+jar_path = "/app/infodynamics.jar"
+startJVM(getDefaultJVMPath(), f"-Djava.class.path={jar_path}")
 
 class TransferEntropy:
     def __init__(self, k:int) -> None:

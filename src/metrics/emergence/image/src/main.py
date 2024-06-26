@@ -1,7 +1,4 @@
-"""
-https://github.com/marcbrittain/Transfer_Entropy/blob/master/CAtransferEntropy.py
-https://github.com/jlizier/jidt/blob/master/java/source/infodynamics/measures/discrete/TransferEntropyCalculatorDiscrete.java
-"""
+"""docker build -t foo . && docker run -it foo"""
 
 from enum import Enum 
 
@@ -32,6 +29,15 @@ for _ in range(200):
 
 spacetime = local_transfer_entropy(evolution=ca.evolution(), k_history=1, neighbour=TransferEntropyNeighbour.LEFT)
 
-from matplotlib.pyplot import imshow, show 
-imshow(spacetime)
-show()
+
+# from matplotlib.pyplot import savefig, imshow
+
+# fname = "evolution.png"
+# imshow(ca.evolution(), cmap='gray')
+# #savefig(fname)
+# show()
+
+# fname = "filtered.png"
+# imshow(spacetime)
+# #savefig(fname)
+# show()
