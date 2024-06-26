@@ -1,4 +1,4 @@
-"""docker build -t foo . && docker run -it foo"""
+"""docker build -t emergence_metrics . && docker run -p 8080:8080 -it emergence_metrics"""
 
 from enum import Enum 
 
@@ -30,14 +30,13 @@ for _ in range(200):
 spacetime = local_transfer_entropy(evolution=ca.evolution(), k_history=1, neighbour=TransferEntropyNeighbour.LEFT)
 
 
-# from matplotlib.pyplot import savefig, imshow
+from matplotlib.pyplot import imshow
+from nicegui import ui
 
-# fname = "evolution.png"
-# imshow(ca.evolution(), cmap='gray')
-# #savefig(fname)
-# show()
+with ui.pyplot(figsize=(10, 15)):
+    imshow(ca.evolution(), cmap='gray')
 
-# fname = "filtered.png"
-# imshow(spacetime)
-# #savefig(fname)
-# show()
+with ui.pyplot(figsize=(10, 15)):
+    imshow(spacetime, cmap='gray')
+
+ui.run()
