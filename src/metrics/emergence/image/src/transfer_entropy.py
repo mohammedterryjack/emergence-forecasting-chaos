@@ -1,8 +1,11 @@
-from jpype import JArray, JInt, JPackage, startJVM, getDefaultJVMPath
-from numpy import ndarray, array
+"""Adapted from https://github.com/marcbrittain/Transfer_Entropy/blob/master/CAtransferEntropy.py"""
 
-jar_path = "/app/infodynamics.jar"
-startJVM(getDefaultJVMPath(), f"-Djava.class.path={jar_path}")
+from enum import Enum 
+
+from jpype import JArray, JInt, JPackage, startJVM, getDefaultJVMPath
+from numpy import ndarray, roll, zeros
+
+startJVM(getDefaultJVMPath(), f"-Djava.class.path=/app/infodynamics.jar")
 
 class TransferEntropy:
     def __init__(self, k:int) -> None:
@@ -14,8 +17,26 @@ class TransferEntropy:
         x_ = JArray(JInt, 1)(x.tolist())
         y_ = JArray(JInt, 1)(y.tolist())
         self.metric.addObservations(y_,x_)
-        result = self.metric.computeLocalFromPreviousObservations(
+        return self.metric.computeLocalFromPreviousObservations(
             y_,
             x_
         )
-        return result #array(result)
+
+class TransferEntropyNeighbour(Enum):
+    LEFT = 1
+    RIGHT = -1
+
+def pointwise_transfer_entropy(
+    evolution:ndarray, 
+    k_history:int, 
+    neighbour:TransferEntropyNeighbour
+) -> ndarray:   
+    metric = TransferEntropy(k=k_history)
+    _,width = evolution.shape
+    filtered_evolution = zeros(evolution.shape)
+    for column_index in range(width):
+        filtered_evolution[:,column_index] = metric(
+            x=evolution[:,column_index],
+            y=roll(evolution,neighbour.value,1)[:,column_index]  
+        )
+    return filtered_evolution
