@@ -4,7 +4,7 @@ from matplotlib.pyplot import imshow
 from nicegui import ui
 
 from eca import OneDimensionalElementaryCellularAutomata
-from transfer_entropy import pointwise_transfer_entropy, TransferEntropyNeighbour
+from transfer_entropy import pointwise_transfer_entropy
 
 
 def display_ca(width:int, time_steps:int, rule:int) -> None:    
@@ -16,8 +16,6 @@ def display_ca(width:int, time_steps:int, rule:int) -> None:
 
     filtered_spacetime = pointwise_transfer_entropy(
         evolution=ca.evolution(), 
-        k_history=8, 
-        neighbour=TransferEntropyNeighbour.LEFT
     )
     emergence_window.clear()
     with emergence_window as splitter:

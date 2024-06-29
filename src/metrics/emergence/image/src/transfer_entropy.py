@@ -8,9 +8,8 @@ from numpy import ndarray, roll, zeros
 startJVM(getDefaultJVMPath(), f"-Djava.class.path=/app/infodynamics.jar")
 
 class TransferEntropy:
-    def __init__(self, k:int) -> None:
-        transfer_entropy = JPackage("infodynamics.measures.discrete").TransferEntropyCalculatorDiscrete
-        self.metric = transfer_entropy(2,k)
+    def __init__(self, k:int=8, base:int=2) -> None:        
+        self.metric = JPackage("infodynamics.measures.discrete").TransferEntropyCalculatorDiscrete(base,k)
         self.metric.initialise()
 
     def __call__(self, x:ndarray, y:ndarray) -> ndarray:
@@ -28,14 +27,13 @@ class TransferEntropyNeighbour(Enum):
 
 def pointwise_transfer_entropy(
     evolution:ndarray, 
-    k_history:int, 
-    neighbour:TransferEntropyNeighbour
+    neighbour:TransferEntropyNeighbour = TransferEntropyNeighbour.LEFT
 ) -> ndarray:   
-    metric = TransferEntropy(k=k_history)
     _,width = evolution.shape
     filtered_evolution = zeros(evolution.shape)
+    emergence_filter = TransferEntropy()
     for column_index in range(width):
-        filtered_evolution[:,column_index] = metric(
+        filtered_evolution[:,column_index] = emergence_filter(
             x=evolution[:,column_index],
             y=roll(evolution,neighbour.value,1)[:,column_index]  
         )
