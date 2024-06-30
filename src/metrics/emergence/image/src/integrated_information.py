@@ -1,77 +1,50 @@
-from jpype import JClass
+from jpype import JClass, JArray, JInt
 from numpy import zeros, ndarray
 from numpy import sum as np_sum
 
-from eca import OneDimensionalElementaryCellularAutomata
 
+class IntegratedInformation:
+    def __init__(
+        self,
+        phi_k:int,
+        base:int = 2,  
+        phi_width:int = 3
+    ) -> None:
+        self.phi_width = phi_width
+        self.matrix_utils = JClass('infodynamics.utils.MatrixUtils')()
+        self.metric3 = JClass('infodynamics.measures.discrete.ActiveInformationCalculatorDiscrete')(base**phi_width, phi_k)
+        self.metric1 = JClass('infodynamics.measures.discrete.ActiveInformationCalculatorDiscrete')(base, phi_k)
 
-def compute_phi(evolution:ndarray, phi_K:int) -> ndarray:
-    # Initialize the variables
-    base = 2  
-    phi_width = 3
+    def __call__(self, train_evolution:ndarray, test_evolution:ndarray) -> ndarray:
+        train_evolution_ = JArray(JInt, 1)(train_evolution.tolist())
+        test_evolution_ = JArray(JInt, 1)(test_evolution.tolist())
 
-    matrix_utils = JClass('infodynamics.utils.MatrixUtils')()
+        self.metric1.addObservations(train_evolution_)
+        metric1_locals = self.metric1.computeLocalFromPreviousObservations(test_evolution_)
 
-    width = X.shape[1]
-    testWidth = test.shape[1]
+        _,width = train_evolution.shape
+        _,test_width = test_evolution.shape
 
-    # aisCalc1 = javaObject('infodynamics.measures.discrete.ActiveInformationCalculatorDiscrete', base, phi_K);
-    # aisCalc3 = JPackage("infodynamics.measures.discrete").ActiveInformationCalculatorDiscrete
-    # aisCalc3 = javaObject('infodynamics.measures.discrete.ActiveInformationCalculatorDiscrete', base^phi_width, phi_K);
-    ActiveInformationCalculatorDiscrete = JClass('infodynamics.measures.discrete.ActiveInformationCalculatorDiscrete')
-    aisCalc3 = ActiveInformationCalculatorDiscrete(base**phi_width, phi_K)
-    aisCalc1 = ActiveInformationCalculatorDiscrete(base, phi_K)
+        for col in range(self.phi_width-1, width):
+            aux = self.matrix_utils.computeCombinedValues(
+                train_evolution[:, col-(self.phi_width-1):col+1], 
+                self.base
+            )
+            aux_ = JArray(JInt, 1)(aux.tolist())
+            self.metric3.addObservations(aux_)
+        
+        test_aux = zeros(test_evolution.shape)
+        for col in range(self.phi_width-1, test_width):
+            test_aux[:, col] = self.matrix_utils.computeCombinedValues(
+                test_evolution[:, col-(self.phi_width-1):col+1], 
+                self.base
+            )
+        
+        test_aux_ = JArray(JInt, 1)(test_aux.tolist())
+        metric3_locals = self.metric3.computeLocalFromPreviousObservations(test_aux_)
 
-
-    # Add training data to build the probability distributions
-
-    # for col=phi_width:width
-    for col in range(phi_width-1, width):
-        #aux = mu.computeCombinedValues(X(:,col-(phi_width-1):col), base);
-        aux = matrix_utils.computeCombinedValues(X[:, col-(phi_width-1):col+1], base)
-        aisCalc3.addObservations(aux)
-    aisCalc1.addObservations(X)
-
-
-
-    # Initialize variables to calculate Phi
-    phi_locals = zeros(test.shape)
-    ais3_locals = zeros(test.shape)
-    ais1_locals = zeros(test.shape)
-
-    test_aux = zeros(test.shape)
-    R = (phi_width-1) // 2
-
-    # for col=phi_width:testWidth
-    for col in range(phi_width-1, testWidth):
-        #test_aux(:,col-1) = mu.computeCombinedValues(test(:,col-(phi_width-1):col), base);
-        test_aux[:, col] = matrix_utils.computeCombinedValues(test[:, col-(phi_width-1):col+1], base)
-
-    ais3_locals = aisCalc3.computeLocalFromPreviousObservations(test_aux)
-    ais1_locals = aisCalc1.computeLocalFromPreviousObservations(test)
-
-
-    # for col=1+R:testWidth-R
-    for col in range(R, testWidth-R):
-        #phi_locals(:,col) = ais3_locals(:,col) - sum(ais1_locals(:, col-R:col+R), 2);
-        phi_locals[:, col] = ais3_locals[:, col] - np_sum(ais1_locals[:, col-R:col+R+1], axis=1)
-
-
-    return phi_locals
-
-
-ca =  OneDimensionalElementaryCellularAutomata(lattice_width=10000)
-for _ in range(630):
-    ca.transition(rule_number=54)
-filtered_evolution_54 = compute_phi(
-    evolution=ca.evolution(),
-    phi_K = 4
-)
-
-ca =  OneDimensionalElementaryCellularAutomata(lattice_width=10000)
-for _ in range(630):
-    ca.transition(rule_number=110)
-filtered_evolution_110 = compute_phi(
-    evolution=ca.evolution(),
-    phi_K = 5 
-)
+        R = (self.phi_width-1) // 2
+        locals = zeros(test_evolution.shape)
+        for col in range(R, test_width-R):
+            locals[:, col] = metric3_locals[:, col] - np_sum(metric1_locals[:, col-R:col+R+1], axis=1)
+        return locals

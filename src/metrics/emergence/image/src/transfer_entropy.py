@@ -2,10 +2,12 @@
 
 from enum import Enum 
 
-from jpype import JArray, JInt, JPackage, startJVM, getDefaultJVMPath
+from jpype import JArray, JInt, JPackage
 from numpy import ndarray, roll, zeros
 
-startJVM(getDefaultJVMPath(), f"-Djava.class.path=/app/infodynamics.jar")
+class TransferEntropyNeighbour(Enum):
+    LEFT = 1
+    RIGHT = -1
 
 class TransferEntropy:
     def __init__(self, k:int=8, base:int=2) -> None:        
@@ -20,10 +22,6 @@ class TransferEntropy:
             y_,
             x_
         )
-
-class TransferEntropyNeighbour(Enum):
-    LEFT = 1
-    RIGHT = -1
 
 def pointwise_transfer_entropy(
     evolution:ndarray, 
