@@ -1,4 +1,8 @@
-"""Adapted from https://github.com/marcbrittain/Transfer_Entropy/blob/master/CAtransferEntropy.py"""
+"""
+Adapted from https://github.com/marcbrittain/Transfer_Entropy/blob/master/CAtransferEntropy.py
+build upon Jidt:
+https://github.com/jlizier/jidt/blob/master/java/source/infodynamics/measures/discrete/TransferEntropyCalculatorDiscrete.java
+"""
 
 from enum import Enum 
 
