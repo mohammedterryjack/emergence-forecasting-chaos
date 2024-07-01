@@ -45,7 +45,7 @@ width = ui.slider(
 ).props('label-always')
 time_steps = ui.number(label='Time Steps', value=100, min=1, max=1000, step=1)
 metric = ui.select({0:'Transfer Entropy', 1:'Integrated Information'}, value=0)
-k = ui.number(label='K', value=5, min=1, max=7, step=1)
+k = ui.number(label='K', value=7, min=1, max=7, step=1)
 rule = ui.number(label='Rule', value=110, min=0, max=256, step=1)
 ui.chip('Run', icon='ads_click', on_click=lambda: display_ca(
     width=width.value,
