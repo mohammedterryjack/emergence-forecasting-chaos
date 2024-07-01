@@ -32,17 +32,18 @@ def display_ca(width:int, time_steps:int, rule:int, emergence_filter_index:int, 
                 imshow(ca.evolution(), cmap='gray')
         with splitter.after:
             with ui.pyplot(figsize=(5, 10)):
-                imshow(filtered_spacetime)
+                imshow(filtered_spacetime, cmap='turbo')
             
 
+emergence_window = ui.splitter()
 ui.label('width')
 width = ui.slider(
     min=3, 
     max=300, 
-    value=50, 
+    value=100, 
     step=1, 
 ).props('label-always')
-time_steps = ui.number(label='Time Steps', value=500, min=1, max=1000, step=1)
+time_steps = ui.number(label='Time Steps', value=100, min=1, max=1000, step=1)
 metric = ui.select({0:'Transfer Entropy', 1:'Integrated Information'}, value=0)
 k = ui.number(label='K', value=5, min=1, max=7, step=1)
 rule = ui.number(label='Rule', value=110, min=0, max=256, step=1)
@@ -53,6 +54,5 @@ ui.chip('Run', icon='ads_click', on_click=lambda: display_ca(
     k=int(k.value),
     emergence_filter_index= metric.value,
 ))
-emergence_window = ui.splitter()
 
 ui.run()
