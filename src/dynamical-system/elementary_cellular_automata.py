@@ -6,24 +6,23 @@ from numpy import ndarray, roll, array, stack, apply_along_axis, zeros, binary_r
 # print(eca_110) //string with black and white emojis
 # eca.save('bla.txt')
 
-class OneDimensionalCellularAutomata:
+class OneDimensionalBinaryCellularAutomata:
     def __init__(
         self,
         transition_rule_number:int|None=None,
-        cell_states:int=2,
         neighbourhood_radius:int=1,
         width:int=100,
         time_steps:int=100,
         initial_state:int=0
     ) -> None:
         self.transition_rule_number=transition_rule_number
-        self.cell_states=cell_states
+        self.cell_states=2
         self.neighbourhood_radius=neighbourhood_radius
         self.width=width
         self.time_steps=time_steps
         self.initial_state=initial_state
         self.configuration=list(map(int,binary_repr(self.initial_state,self.width)))
-        self.evolution = zeros(shape=(self.time_steps, self.width))
+        self.evolution = zeros(shape=(self.time_steps, self.width),dtype=int)
     
     def set_binary_rule_from_number(self, rule_number:int) -> None:
         local_neighbourhood_size = 2*self.neighbourhood_radius + 1
@@ -40,7 +39,11 @@ class OneDimensionalCellularAutomata:
         #TODO: check what rule number would be, set it and return it
 
     def __repr__(self) -> str:
-        pass 
+        return '\n'.join(
+            ''.join(
+                ("■","□")[cell] for cell in row
+            ) for row in self.evolution
+        )    
 
     def array(self) -> ndarray:
         return array(self.configuration)
@@ -67,12 +70,15 @@ class OneDimensionalCellularAutomata:
         return apply_along_axis(self.local_transition_rule, 0, local_neighbourhoods)
     
 
-ca = OneDimensionalCellularAutomata(
-    neighbourhood_radius=3,
-    initial_state=100
+ca = OneDimensionalBinaryCellularAutomata(
+    neighbourhood_radius=1,
+    initial_state=1
 )
-ca.set_binary_rule_from_number(rule_number=11002)
+ca.set_binary_rule_from_number(rule_number=110)
 ca.evolve()
+
+with open('ca.txt','w') as f:
+    f.write(str(ca))
 
 from matplotlib.pyplot import imshow, show 
 imshow(ca.evolution,cmap='gray')
