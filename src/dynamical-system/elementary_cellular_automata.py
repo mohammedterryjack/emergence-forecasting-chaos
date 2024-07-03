@@ -1,4 +1,7 @@
+"""https://blog.scientific-python.org/matplotlib/elementary-cellular-automata/"""
+
 from collections.abc import Sequence
+from random import randint
 
 from numpy import ndarray, roll, stack, apply_along_axis, zeros, binary_repr
 from matplotlib.pyplot import imshow, show 
@@ -8,44 +11,41 @@ class OneDimensionalBinaryCellularAutomata(Sequence):
         self,
         transition_rule_number:int,
         neighbourhood_radius:int=1,
-        width:int=100,
+        lattice_width:int=100,
         time_steps:int=100,
-        initial_state:int=0
+        initial_state:int|None = None
     ) -> None:
         super().__init__()
-        self.cell_states=2
+
         self.neighbourhood_radius=neighbourhood_radius
-        self.width=width
+        self.local_neighbourhood_size = self.neighbourhood_radius*2 + 1
+        assert lattice_width>=self.local_neighbourhood_size, f"lattice width ({lattice_width}) is too small for neighbourhood radius ({neighbourhood_radius})"
+
+        min_state,max_state = 0,2**lattice_width
+        if initial_state is None:
+            initial_state = randint(min_state,max_state)
+        assert min_state<=initial_state<max_state, f"initial state ({initial_state}) is out of bounds ({min_state},{max_state})"
+
+        assert 0<time_steps, "time steps must be a positive integer"
         self.time_steps=time_steps
-        self.initial_state=initial_state
-        self.configuration=list(map(int,binary_repr(self.initial_state,self.width)))
+        local_transition_rule = self.create_binary_rule_from_number(
+            rule_number=transition_rule_number,
+            local_neighbourhood_size=self.local_neighbourhood_size
+        )
+        self.evolution = self.create_spacetime_evolution(
+            time_steps=self.time_steps,
+            initial_state=initial_state,
+            lattice_width=lattice_width,
+            neighbourhood_radius=neighbourhood_radius,
+            local_transition_rule=local_transition_rule      
+        )     
 
-        self.transition_rule_number=transition_rule_number
-        self.set_binary_rule_from_number()
-
-        self.evolution = zeros(shape=(self.time_steps, self.width),dtype=int)        
-        self.evolve()
-
-    def __len__(self):
+    def __len__(self) -> int:
         return self.time_steps
 
     def __getitem__(self, i:int) -> ndarray:
         return self.evolution[i]
     
-    def set_binary_rule_from_number(self) -> None:
-        local_neighbourhood_size = 2*self.neighbourhood_radius + 1
-        binary_string = binary_repr(self.transition_rule_number, self.cell_states ** local_neighbourhood_size)
-        outputs = binary_string[::-1]
-        def local_rule(input_neighbourhood:ndarray) -> int:
-            lookup_index_binary_str = ''.join(map(str,input_neighbourhood))
-            lookup_index = int(lookup_index_binary_str,2)
-            return int(outputs[lookup_index])
-        self.local_transition_rule = local_rule
-
-    #def set_local_transition_rule(self, rule:callable) -> None:
-    #    self.local_transition_rule = rule 
-        #TODO: check what rule number would be, set it and return it
-
     def __repr__(self) -> str:
         return '\n'.join(
             ''.join(
@@ -56,45 +56,54 @@ class OneDimensionalBinaryCellularAutomata(Sequence):
     def save(self, fname:str) -> None:
         with open(f"{fname}.txt",'w') as f:
             f.write(str(self))
-    
-    def evolve(self) -> None:  
-        for i in range(self.time_steps):
-            self.configuration = self.global_transition(
-                configuration=self.configuration
-            )
-            self.evolution[i, :] = self.configuration
-
-    def global_transition(self, configuration:ndarray) -> ndarray:
-        """https://blog.scientific-python.org/matplotlib/elementary-cellular-automata/"""
-        local_neighbourhoods = stack(
-            [
-                roll(configuration,i) 
-                for i in range(
-                    -self.neighbourhood_radius,
-                    self.neighbourhood_radius+1,
-                    1
-                )
-            ]
-        )
-        return apply_along_axis(self.local_transition_rule, 0, local_neighbourhoods)
 
     def show(self) -> None:
         imshow(self.evolution,cmap='gray')
         show()    
 
-ca = OneDimensionalBinaryCellularAutomata(
-    neighbourhood_radius=1,
-    initial_state=1,
-    transition_rule_number=110
-)
+    @staticmethod
+    def apply_local_transition_rule_to_lattice(
+        configuration:ndarray, 
+        neighbourhood_radius:int, 
+        local_transition_rule:callable
+    ) -> ndarray:
+        local_neighbourhoods = stack(
+            [
+                roll(configuration,i) 
+                for i in range(
+                    -neighbourhood_radius,
+                    neighbourhood_radius+1,
+                    1
+                )
+            ]
+        )
+        return apply_along_axis(local_transition_rule, 0, local_neighbourhoods)
 
-#ca.save('ca')
-#print(ca[10])
-#print(ca[:30])
+    @staticmethod
+    def create_binary_lattice_from_number(state_number:int, lattice_width:int) -> list[int]:
+        return list(map(int,binary_repr(state_number,lattice_width)))
 
-#from numpy import array 
-#print(array(ca))
+    @staticmethod
+    def create_binary_rule_from_number(rule_number:int, local_neighbourhood_size:int) -> callable:
+        binary_string = binary_repr(rule_number, 2 ** local_neighbourhood_size)
+        outputs = list(map(int,binary_string[::-1]))
+        def local_transition_rule(input_neighbourhood:ndarray) -> int:
+            assert input_neighbourhood.shape==(local_neighbourhood_size,), f"wrong input dimension. expected ({local_neighbourhood_size},) but got {input_neighbourhood.shape}"
+            lookup_index = int(''.join(map(str,input_neighbourhood)),2)
+            return outputs[lookup_index]
+        return local_transition_rule
 
-#print(list(ca))
-
-ca.show()
+    @staticmethod
+    def create_spacetime_evolution(time_steps:int, lattice_width:int, initial_state:int, neighbourhood_radius:int, local_transition_rule:callable) -> ndarray: 
+        evolution = zeros(shape=(time_steps, lattice_width),dtype=int)  
+        evolution[0, :]=OneDimensionalBinaryCellularAutomata.create_binary_lattice_from_number(
+            state_number=initial_state,
+            lattice_width=lattice_width
+        )
+        for i in range(1,time_steps):
+            evolution[i, :] = OneDimensionalBinaryCellularAutomata.apply_local_transition_rule_to_lattice(
+                configuration=evolution[i-1, :],
+                neighbourhood_radius=neighbourhood_radius,
+                local_transition_rule=local_transition_rule
+            )
+        return evolution
