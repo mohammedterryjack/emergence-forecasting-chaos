@@ -2,6 +2,7 @@
 
 from collections.abc import Sequence
 from random import randint
+from json import dumps
 
 from numpy import ndarray, roll, stack, apply_along_axis, zeros, binary_repr
 from matplotlib.pyplot import imshow, show 
@@ -9,28 +10,30 @@ from matplotlib.pyplot import imshow, show
 class ElementaryCellularAutomata(Sequence):
     def __init__(
         self,
-        transition_rule_number:int,
         neighbourhood_radius:int=1,
         lattice_width:int=100,
         time_steps:int=100,
-        initial_state:int|None = None
+        initial_state:int|None = None,
+        transition_rule_number:int|None=None,
     ) -> None:
         super().__init__()
 
-        self.neighbourhood_radius=neighbourhood_radius
-        self.local_neighbourhood_size = self.neighbourhood_radius*2 + 1
-        assert lattice_width>=self.local_neighbourhood_size, f"lattice width ({lattice_width}) is too small for neighbourhood radius ({neighbourhood_radius})"
-
+        assert 0<time_steps, "time steps must be a positive integer"
+        self.time_steps=time_steps
+        local_neighbourhood_size = neighbourhood_radius*2 + 1
+        assert lattice_width>=local_neighbourhood_size, f"lattice width ({lattice_width}) is too small for neighbourhood radius ({neighbourhood_radius})"
         min_state,max_state = 0,2**lattice_width
         if initial_state is None:
             initial_state = randint(min_state,max_state)
         assert min_state<=initial_state<max_state, f"initial state ({initial_state}) is out of bounds ({min_state},{max_state})"
-
-        assert 0<time_steps, "time steps must be a positive integer"
-        self.time_steps=time_steps
+        
+        min_rule_number,max_rule_number = 0,2 ** 2 ** local_neighbourhood_size
+        if transition_rule_number is None:
+            transition_rule_number = randint(min_rule_number,max_rule_number)
+        assert min_rule_number<=transition_rule_number<max_rule_number, f"rule number ({transition_rule_number}) is out of bounds ({min_rule_number},{max_rule_number})"
         local_transition_rule = self.create_binary_rule_from_number(
             rule_number=transition_rule_number,
-            local_neighbourhood_size=self.local_neighbourhood_size
+            local_neighbourhood_size=local_neighbourhood_size
         )
         self.evolution = self.create_spacetime_evolution(
             time_steps=self.time_steps,
@@ -38,7 +41,14 @@ class ElementaryCellularAutomata(Sequence):
             lattice_width=lattice_width,
             neighbourhood_radius=neighbourhood_radius,
             local_transition_rule=local_transition_rule      
-        )     
+        )
+        self.info = lambda : dict(
+            w=lattice_width,
+            T=time_steps,
+            IC=initial_state,
+            r=neighbourhood_radius,
+            rule=transition_rule_number
+        )
 
     def __len__(self) -> int:
         return self.time_steps
@@ -47,7 +57,7 @@ class ElementaryCellularAutomata(Sequence):
         return self.evolution[i]
     
     def __repr__(self) -> str:
-        return '\n'.join(
+        return dumps(self.info(),indent=2) + '\n' + '\n'.join(
             ''.join(
                 ("■","□")[cell] for cell in row
             ) for row in self.evolution
@@ -96,12 +106,12 @@ class ElementaryCellularAutomata(Sequence):
     @staticmethod
     def create_spacetime_evolution(time_steps:int, lattice_width:int, initial_state:int, neighbourhood_radius:int, local_transition_rule:callable) -> ndarray: 
         evolution = zeros(shape=(time_steps, lattice_width),dtype=int)  
-        evolution[0, :]=OneDimensionalBinaryCellularAutomata.create_binary_lattice_from_number(
+        evolution[0, :]=ElementaryCellularAutomata.create_binary_lattice_from_number(
             state_number=initial_state,
             lattice_width=lattice_width
         )
         for i in range(1,time_steps):
-            evolution[i, :] = OneDimensionalBinaryCellularAutomata.apply_local_transition_rule_to_lattice(
+            evolution[i, :] = ElementaryCellularAutomata.apply_local_transition_rule_to_lattice(
                 configuration=evolution[i-1, :],
                 neighbourhood_radius=neighbourhood_radius,
                 local_transition_rule=local_transition_rule

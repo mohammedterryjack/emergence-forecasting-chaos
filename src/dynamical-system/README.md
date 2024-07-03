@@ -2,10 +2,9 @@
 
 ## Cellular Automata
 ```python
-eca = ElementaryCellularAutomata(
-    neighbourhood_radius=1,
-    transition_rule_number=110
-)
+eca = ElementaryCellularAutomata()
+
+eca.info()
 
 eca.show()
 
