@@ -1,4 +1,4 @@
-from numpy import ndarray, roll, concatenate, array
+from numpy import ndarray, roll, array, stack, apply_along_axis, zeros, binary_repr
 
 # eca.array() //ndarray
 # eca_110[20:] //ndarray
@@ -14,7 +14,7 @@ class OneDimensionalCellularAutomata:
         neighbourhood_radius:int=1,
         width:int=100,
         time_steps:int=100,
-        initial_state:int|None=None
+        initial_state:int=0
     ) -> None:
         self.transition_rule_number=transition_rule_number
         self.cell_states=cell_states
@@ -22,10 +22,20 @@ class OneDimensionalCellularAutomata:
         self.width=width
         self.time_steps=time_steps
         self.initial_state=initial_state
-        self.configuration:list[int]=[0 for _ in range(self.width)]
-
+        self.configuration=list(map(int,binary_repr(self.initial_state,self.width)))
+        self.evolution = zeros(shape=(self.time_steps, self.width))
     
-    def set_local_transition_rule(self, rule:callable) -> int:
+    def set_binary_rule_from_number(self, rule_number:int) -> None:
+        local_neighbourhood_size = 2*self.neighbourhood_radius + 1
+        binary_string = binary_repr(rule_number, self.cell_states ** local_neighbourhood_size)
+        outputs = binary_string[::-1]
+        def local_rule(input_neighbourhood:ndarray) -> int:
+            lookup_index_binary_str = ''.join(map(str,input_neighbourhood))
+            lookup_index = int(lookup_index_binary_str,2)
+            return int(outputs[lookup_index])
+        self.local_transition_rule = local_rule
+
+    def set_local_transition_rule(self, rule:callable) -> None:
         self.local_transition_rule = rule 
         #TODO: check what rule number would be, set it and return it
 
@@ -35,33 +45,35 @@ class OneDimensionalCellularAutomata:
     def array(self) -> ndarray:
         return array(self.configuration)
     
-    def evolve(self) -> None:        
-        self.evolution = [
-            self.global_transition()
-            for _ in range(self.time_steps)
-        ]
+    def evolve(self) -> None:  
+        for i in range(self.time_steps):
+            self.configuration = self.global_transition(
+                configuration=self.configuration
+            )
+            self.evolution[i, :] = self.configuration
 
-    def global_transition(self) -> list[int]:
-        wraparound_lattice = concatenate([
-            roll(self.configuration,self.neighbourhood_radius),
-            self.configuration[-self.neighbourhood_radius:],
-            self.configuration[:self.neighbourhood_radius]
-        ])
-        neighbourhood_size = (2*self.neighbourhood_radius)+1
-        local_neigbourhoods = [
-            wraparound_lattice[start_index:start_index+neighbourhood_size]
-            for start_index in range(self.width)
-        ]
-        return list(map(self.local_transition_rule,local_neigbourhoods))
+    def global_transition(self, configuration:ndarray) -> ndarray:
+        """https://blog.scientific-python.org/matplotlib/elementary-cellular-automata/"""
+        local_neighbourhoods = stack(
+            [
+                roll(configuration,i) 
+                for i in range(
+                    -self.neighbourhood_radius,
+                    self.neighbourhood_radius+1,
+                    1
+                )
+            ]
+        )
+        return apply_along_axis(self.local_transition_rule, 0, local_neighbourhoods)
     
 
-ca110 = OneDimensionalCellularAutomata(
-    neighbourhood_radius=3
+ca = OneDimensionalCellularAutomata(
+    neighbourhood_radius=3,
+    initial_state=100
 )
-ca110.set_local_transition_rule(
-    rule=sum
-)
-ca110.evolve()
+ca.set_binary_rule_from_number(rule_number=11002)
+ca.evolve()
+
 from matplotlib.pyplot import imshow, show 
-imshow(ca110.evolution)
+imshow(ca.evolution,cmap='gray')
 show()
