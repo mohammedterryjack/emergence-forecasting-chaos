@@ -58,9 +58,7 @@ class ElementaryCellularAutomata(Sequence):
     
     def __repr__(self) -> str:
         return dumps(self.info(),indent=2) + '\n' + '\n'.join(
-            ''.join(
-                ("■","□")[cell] for cell in row
-            ) for row in self.evolution
+            map(self.stringify_configuration,self)
         )    
     
     def save(self, fname:str) -> None:
@@ -117,3 +115,7 @@ class ElementaryCellularAutomata(Sequence):
                 local_transition_rule=local_transition_rule
             )
         return evolution
+
+    @staticmethod
+    def stringify_configuration(configuration:ndarray) -> str:
+        return ''.join(("■","□")[cell] for cell in configuration)
