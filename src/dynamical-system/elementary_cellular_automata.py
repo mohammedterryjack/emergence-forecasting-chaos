@@ -1,12 +1,8 @@
-from numpy import ndarray, roll, array, stack, apply_along_axis, zeros, binary_repr
+from collections.abc import Sequence
 
-# eca.array() //ndarray
-# eca_110[20:] //ndarray
-# eca_110[10] //array([10101010111...])
-# print(eca_110) //string with black and white emojis
-# eca.save('bla.txt')
+from numpy import ndarray, roll, stack, apply_along_axis, zeros, binary_repr
 
-class OneDimensionalBinaryCellularAutomata:
+class OneDimensionalBinaryCellularAutomata(Sequence):
     def __init__(
         self,
         transition_rule_number:int|None=None,
@@ -15,6 +11,7 @@ class OneDimensionalBinaryCellularAutomata:
         time_steps:int=100,
         initial_state:int=0
     ) -> None:
+        super().__init__()
         self.transition_rule_number=transition_rule_number
         self.cell_states=2
         self.neighbourhood_radius=neighbourhood_radius
@@ -23,6 +20,12 @@ class OneDimensionalBinaryCellularAutomata:
         self.initial_state=initial_state
         self.configuration=list(map(int,binary_repr(self.initial_state,self.width)))
         self.evolution = zeros(shape=(self.time_steps, self.width),dtype=int)
+    
+    def __len__(self):
+        return self.time_steps
+
+    def __getitem__(self, i:int) -> ndarray:
+        return self.evolution[i]
     
     def set_binary_rule_from_number(self, rule_number:int) -> None:
         local_neighbourhood_size = 2*self.neighbourhood_radius + 1
@@ -34,8 +37,8 @@ class OneDimensionalBinaryCellularAutomata:
             return int(outputs[lookup_index])
         self.local_transition_rule = local_rule
 
-    def set_local_transition_rule(self, rule:callable) -> None:
-        self.local_transition_rule = rule 
+    #def set_local_transition_rule(self, rule:callable) -> None:
+    #    self.local_transition_rule = rule 
         #TODO: check what rule number would be, set it and return it
 
     def __repr__(self) -> str:
@@ -44,9 +47,10 @@ class OneDimensionalBinaryCellularAutomata:
                 ("■","□")[cell] for cell in row
             ) for row in self.evolution
         )    
-
-    def array(self) -> ndarray:
-        return array(self.configuration)
+    
+    def save(self, fname:str) -> None:
+        with open(f"{fname}.txt",'w') as f:
+            f.write(str(self))
     
     def evolve(self) -> None:  
         for i in range(self.time_steps):
@@ -77,8 +81,9 @@ ca = OneDimensionalBinaryCellularAutomata(
 ca.set_binary_rule_from_number(rule_number=110)
 ca.evolve()
 
-with open('ca.txt','w') as f:
-    f.write(str(ca))
+ca.save('ca')
+#print(ca[10])
+#print(ca[:30])
 
 from matplotlib.pyplot import imshow, show 
 imshow(ca.evolution,cmap='gray')
