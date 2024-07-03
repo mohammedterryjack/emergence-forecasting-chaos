@@ -1,35 +1,40 @@
 from collections.abc import Sequence
 
 from numpy import ndarray, roll, stack, apply_along_axis, zeros, binary_repr
+from matplotlib.pyplot import imshow, show 
 
 class OneDimensionalBinaryCellularAutomata(Sequence):
     def __init__(
         self,
-        transition_rule_number:int|None=None,
+        transition_rule_number:int,
         neighbourhood_radius:int=1,
         width:int=100,
         time_steps:int=100,
         initial_state:int=0
     ) -> None:
         super().__init__()
-        self.transition_rule_number=transition_rule_number
         self.cell_states=2
         self.neighbourhood_radius=neighbourhood_radius
         self.width=width
         self.time_steps=time_steps
         self.initial_state=initial_state
         self.configuration=list(map(int,binary_repr(self.initial_state,self.width)))
-        self.evolution = zeros(shape=(self.time_steps, self.width),dtype=int)
-    
+
+        self.transition_rule_number=transition_rule_number
+        self.set_binary_rule_from_number()
+
+        self.evolution = zeros(shape=(self.time_steps, self.width),dtype=int)        
+        self.evolve()
+
     def __len__(self):
         return self.time_steps
 
     def __getitem__(self, i:int) -> ndarray:
         return self.evolution[i]
     
-    def set_binary_rule_from_number(self, rule_number:int) -> None:
+    def set_binary_rule_from_number(self) -> None:
         local_neighbourhood_size = 2*self.neighbourhood_radius + 1
-        binary_string = binary_repr(rule_number, self.cell_states ** local_neighbourhood_size)
+        binary_string = binary_repr(self.transition_rule_number, self.cell_states ** local_neighbourhood_size)
         outputs = binary_string[::-1]
         def local_rule(input_neighbourhood:ndarray) -> int:
             lookup_index_binary_str = ''.join(map(str,input_neighbourhood))
@@ -72,19 +77,24 @@ class OneDimensionalBinaryCellularAutomata(Sequence):
             ]
         )
         return apply_along_axis(self.local_transition_rule, 0, local_neighbourhoods)
-    
+
+    def show(self) -> None:
+        imshow(self.evolution,cmap='gray')
+        show()    
 
 ca = OneDimensionalBinaryCellularAutomata(
     neighbourhood_radius=1,
-    initial_state=1
+    initial_state=1,
+    transition_rule_number=110
 )
-ca.set_binary_rule_from_number(rule_number=110)
-ca.evolve()
 
-ca.save('ca')
+#ca.save('ca')
 #print(ca[10])
 #print(ca[:30])
 
-from matplotlib.pyplot import imshow, show 
-imshow(ca.evolution,cmap='gray')
-show()
+#from numpy import array 
+#print(array(ca))
+
+#print(list(ca))
+
+ca.show()
