@@ -2,17 +2,17 @@
 
 ## Cellular Automata
 ```python
-ca = OneDimensionalBinaryCellularAutomata(
+eca = ElementaryCellularAutomata(
     neighbourhood_radius=1,
     transition_rule_number=110
 )
 
-ca.show() #plots ca
+eca.show()
 
-ca.save('ca') #saves to file ca.txt
+eca.save('ca') #saves to file ca.txt
 
-ca[0]
-ca[10:]
+eca[0]
+eca[10:]
 
 list(ca)
 array(ca)

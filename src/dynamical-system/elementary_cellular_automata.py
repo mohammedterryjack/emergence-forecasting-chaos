@@ -6,7 +6,7 @@ from random import randint
 from numpy import ndarray, roll, stack, apply_along_axis, zeros, binary_repr
 from matplotlib.pyplot import imshow, show 
 
-class OneDimensionalBinaryCellularAutomata(Sequence):
+class ElementaryCellularAutomata(Sequence):
     def __init__(
         self,
         transition_rule_number:int,
