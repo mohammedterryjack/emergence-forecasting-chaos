@@ -1,9 +1,18 @@
-from random import randint
+from gzip import compress
+
 from numpy.linalg import norm
 from numpy import arccos, ones, ndarray
-from matplotlib.pyplot import ylim, xlim, plot, show, annotate, title
+from matplotlib.pyplot import ylim, xlim, plot, show, annotate, title, xlabel, ylabel
 
 from elementary_cellular_automata import ElementaryCellularAutomata
+
+
+def density(x:ndarray) -> float:
+    x = 2*x - 1 
+    return abs(sum(x))
+
+def complexity(x:ndarray) -> float:
+    return len(compress(''.join(map(str,x)).encode('utf-8')))
 
 
 def cosine_similarity(a:ndarray, b:ndarray) -> float:
@@ -32,8 +41,10 @@ for ic in range(2**width):
         state_number=ic,
         lattice_width=width
     )
-    x = angle(x=array(config),origin=ref_point_a)
-    y = angle(x=array(config),origin=ref_point_b)
+    x = density(x=array(config))
+    y = complexity(x=config)
+    #x = angle(x=array(config),origin=ref_point_a)
+    #y = angle(x=array(config),origin=ref_point_b)
     while (x,y) in seen:
         y += 0.03
     seen.add((x,y))
@@ -47,7 +58,7 @@ for ic in range(2**width):
 
 
 #Display all trajectories
-rule = 3
+rule = 110
 T = 2
 for ic in range(2**width):
     ca =  ElementaryCellularAutomata(
@@ -56,8 +67,11 @@ for ic in range(2**width):
         time_steps=T,
         transition_rule_number=rule
     )
-    xs = list(map(lambda x:angle(x=x,origin=ref_point_a),ca))
-    ys = list(map(lambda x:angle(x=x,origin=ref_point_b),ca))
+    #xs = list(map(lambda x:angle(x=x,origin=ref_point_a),ca))
+    #ys = list(map(lambda x:angle(x=x,origin=ref_point_b),ca))
+    xs = list(map(lambda x:density(x=x),ca))
+    ys = list(map(lambda x:complexity(x=x),ca))
+
     plot(xs,ys,'-->',color='orange', linewidth=1)
 
 #Display a trajectory
@@ -67,14 +81,18 @@ ca =  ElementaryCellularAutomata(
     time_steps=T,
     transition_rule_number=rule
 )
-xs = list(map(lambda x:angle(x=x,origin=ref_point_a),ca))
-ys = list(map(lambda x:angle(x=x,origin=ref_point_b),ca))
+#xs = list(map(lambda x:angle(x=x,origin=ref_point_a),ca))
+#ys = list(map(lambda x:angle(x=x,origin=ref_point_b),ca))
+xs = list(map(lambda x:density(x=x),ca))
+ys = list(map(lambda x:complexity(x=x),ca))
 plot(xs,ys,'-->',color='red', linewidth=1)
 
 print(ca)
 title(rule)
-xlim(-0.2,3.5)
-ylim(-0.2,3.5)
+#xlim(-0.2,3.5)
+#ylim(-0.2,3.5)
+xlabel('density')
+ylabel('complexity')
 show()
 
 
