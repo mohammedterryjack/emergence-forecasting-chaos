@@ -17,9 +17,8 @@ def angle(x:ndarray, origin:ndarray) -> float:
     return arccos(cos_theta)
 
 
-
 #2d plot below
-width = 15
+width = 8#15
 
 ref_point_a = ones(shape=(width))
 ref_point_a[::2] -= 2
@@ -35,11 +34,9 @@ for ic in range(2**width):
     )
     x = angle(x=array(config),origin=ref_point_a)
     y = angle(x=array(config),origin=ref_point_b)
-    if (x,y) in seen:
-        x += 0.05
-        y += 0.05
-    else:
-        seen.add((x,y))
+    while (x,y) in seen:
+        y += 0.03
+    seen.add((x,y))
     annotate(
         ElementaryCellularAutomata.stringify_configuration(
             configuration=config
