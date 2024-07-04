@@ -24,12 +24,12 @@ class ElementaryCellularAutomata(Sequence):
         assert lattice_width>=local_neighbourhood_size, f"lattice width ({lattice_width}) is too small for neighbourhood radius ({neighbourhood_radius})"
         min_state,max_state = 0,2**lattice_width
         if initial_state is None:
-            initial_state = randint(min_state,max_state)
+            initial_state = randint(min_state,max_state-1)
         assert min_state<=initial_state<max_state, f"initial state ({initial_state}) is out of bounds ({min_state},{max_state})"
         
         min_rule_number,max_rule_number = 0,2 ** 2 ** local_neighbourhood_size
         if transition_rule_number is None:
-            transition_rule_number = randint(min_rule_number,max_rule_number)
+            transition_rule_number = randint(min_rule_number,max_rule_number-1)
         assert min_rule_number<=transition_rule_number<max_rule_number, f"rule number ({transition_rule_number}) is out of bounds ({min_rule_number},{max_rule_number})"
         local_transition_rule = self.create_binary_rule_from_number(
             rule_number=transition_rule_number,

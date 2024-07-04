@@ -12,6 +12,7 @@ def cosine_similarity(a:ndarray, b:ndarray) -> float:
     return result
 
 def angle(x:ndarray, origin:ndarray) -> float:
+    x = 2*x - 1 #corrected: 0 --> -1
     cos_theta = cosine_similarity(a=origin,b=x)
     return arccos(cos_theta)
 
@@ -21,7 +22,7 @@ def angle(x:ndarray, origin:ndarray) -> float:
 width = 15
 
 ref_point_a = ones(shape=(width))
-ref_point_a[::2] -= 1
+ref_point_a[::2] -= 2
 ref_point_b = ones(shape=(width))
 
 #DIsplay the configurations on the map
@@ -35,8 +36,8 @@ for ic in range(2**width):
     x = angle(x=array(config),origin=ref_point_a)
     y = angle(x=array(config),origin=ref_point_b)
     if (x,y) in seen:
-        x += 10
-        y += 10
+        x += 0.05
+        y += 0.05
     else:
         seen.add((x,y))
     annotate(
@@ -44,7 +45,7 @@ for ic in range(2**width):
             configuration=config
         ), 
         xy=(x,y),
-        fontsize=2
+        fontsize=3
     )
 
 
@@ -63,11 +64,9 @@ for ic in range(2**width):
     plot(xs,ys,'-->',color='orange', linewidth=1)
 
 #Display a trajectory
-T = 100
-ic = randint(0,2**width)
+T = 4
 ca =  ElementaryCellularAutomata(
     lattice_width=width,
-    initial_state= ic,
     time_steps=T,
     transition_rule_number=rule
 )
@@ -75,10 +74,10 @@ xs = list(map(lambda x:angle(x=x,origin=ref_point_a),ca))
 ys = list(map(lambda x:angle(x=x,origin=ref_point_b),ca))
 plot(xs,ys,'-->',color='red', linewidth=1)
 
-
+print(ca)
 title(rule)
-xlim(-0.2,2)
-ylim(-0.2,2)
+xlim(-0.2,3.5)
+ylim(-0.2,3.5)
 show()
 
 
