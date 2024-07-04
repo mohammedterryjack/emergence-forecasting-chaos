@@ -18,7 +18,7 @@ def angle(x:ndarray, origin:ndarray) -> float:
 
 
 #2d plot below
-width = 8
+width = 15
 
 ref_point_a = ones(shape=(width))
 ref_point_a[::2] -= 1
@@ -44,7 +44,7 @@ for ic in range(2**width):
             configuration=config
         ), 
         xy=(x,y),
-        fontsize=5
+        fontsize=2
     )
 
 
@@ -60,7 +60,7 @@ for ic in range(2**width):
     )
     xs = list(map(lambda x:angle(x=x,origin=ref_point_a),ca))
     ys = list(map(lambda x:angle(x=x,origin=ref_point_b),ca))
-    plot(xs,ys,'-->',color='pink')
+    plot(xs,ys,'-->',color='orange', linewidth=1)
 
 #Display a trajectory
 T = 100
@@ -73,7 +73,7 @@ ca =  ElementaryCellularAutomata(
 )
 xs = list(map(lambda x:angle(x=x,origin=ref_point_a),ca))
 ys = list(map(lambda x:angle(x=x,origin=ref_point_b),ca))
-plot(xs,ys,'-->',color='red')
+plot(xs,ys,'-->',color='red', linewidth=1)
 
 
 title(rule)
