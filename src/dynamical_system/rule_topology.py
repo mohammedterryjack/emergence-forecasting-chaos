@@ -20,7 +20,7 @@ def angle(x:ndarray, origin:ndarray) -> float:
     cos_theta = cosine_similarity(a=origin,b=convert_zeros_to_minus_one(x))
     return arccos(cos_theta)
 
-rule = 110
+rule = 3
 width = 16
 display_configurations = False
 display_all_trajectories = False
@@ -85,7 +85,9 @@ xlabel('parity')
 ylabel('whiteness (angle)')
 show()
 
-#plot(xs[1:],xs[:-1],'-->')
-#xlabel('parity (t)')
-#ylabel('parity (t+1)')
-#show()
+zs = [a+b for a,b in zip(xs,ys)]
+
+plot(zs[1:],zs[:-1],'-->')
+xlabel('t')
+ylabel('t+1')
+show()
