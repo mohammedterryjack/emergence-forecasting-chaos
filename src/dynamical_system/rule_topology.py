@@ -20,10 +20,10 @@ def angle(x:ndarray, origin:ndarray) -> float:
     cos_theta = cosine_similarity(a=origin,b=convert_zeros_to_minus_one(x))
     return arccos(cos_theta)
 
-rule = 30
-width = 4#16
-display_configurations = True
-display_all_trajectories = True
+rule = 110
+width = 16
+display_configurations = False
+display_all_trajectories = False
 display_single_trajectory = True
 
 ref_point_b = ones(shape=(width))
@@ -63,13 +63,13 @@ if display_all_trajectories:
         )
         ys = list(map(lambda x:angle(x=x,origin=ref_point_b),ca))
         xs = list(map(lambda x:parity(x=x),ca))
-        #plot(xs,ys,'-->',color='orange', linewidth=1)
-        us = [a-b for a,b in zip(xs[1:],xs[:-1])]
-        vs = [a-b for a,b in zip(ys[1:],ys[:-1])]        
-        quiver(xs[:-1],ys[:-1],us,vs, color='orange')
+        plot(xs,ys,'-->',color='orange', linewidth=1)
+        #us = [a-b for a,b in zip(xs[1:],xs[:-1])]
+        #vs = [a-b for a,b in zip(ys[1:],ys[:-1])]        
+        #quiver(xs[:-1],ys[:-1],us,vs, color='orange')
 
 if display_single_trajectory:
-    T = 10
+    T = 100
     ca =  ElementaryCellularAutomata(
         lattice_width=width,
         time_steps=T,
@@ -84,3 +84,8 @@ title(rule)
 xlabel('parity')
 ylabel('whiteness (angle)')
 show()
+
+#plot(xs[1:],xs[:-1],'-->')
+#xlabel('parity (t)')
+#ylabel('parity (t+1)')
+#show()
