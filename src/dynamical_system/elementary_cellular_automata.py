@@ -15,6 +15,8 @@ class ElementaryCellularAutomata(Sequence):
         time_steps:int=100,
         initial_state:int|None = None,
         transition_rule_number:int|None=None,
+        representation_zero:str="■",
+        representation_one:str="□"
     ) -> None:
         super().__init__()
 
@@ -49,6 +51,8 @@ class ElementaryCellularAutomata(Sequence):
             r=neighbourhood_radius,
             rule=transition_rule_number
         )
+        self.repr_zero = representation_zero
+        self.repr_one = representation_one
 
     def __len__(self) -> int:
         return self.time_steps
@@ -58,7 +62,14 @@ class ElementaryCellularAutomata(Sequence):
     
     def __repr__(self) -> str:
         return dumps(self.info(),indent=2) + '\n' + '\n'.join(
-            map(self.stringify_configuration,self)
+            map(
+                lambda configuration:self.stringify_configuration(
+                    configuration=configuration,
+                    representation_zero=self.repr_zero,
+                    representation_one=self.repr_one,
+                ),
+                self
+            )
         )    
     
     def save(self, fname:str) -> None:
@@ -117,5 +128,5 @@ class ElementaryCellularAutomata(Sequence):
         return evolution
 
     @staticmethod
-    def stringify_configuration(configuration:ndarray) -> str:
-        return ''.join(("■","□")[cell] for cell in configuration)
+    def stringify_configuration(configuration:ndarray, representation_zero:str, representation_one:str) -> str:
+        return ''.join((representation_zero, representation_one)[cell] for cell in configuration)
