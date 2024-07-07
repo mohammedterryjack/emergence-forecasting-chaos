@@ -1,11 +1,17 @@
 """https://github.com/mfaruqui/sparse-coding"""
+from numpy import array, ndarray
+from pathlib import Path
 
-"""./sparse.o sample_vecs.txt 10 0.5 1e-5 1 out_vecs.txt"""
+#TODO: refactor
+#TODO: double check refactored python file same as original C file
+
+
+
 import numpy as np
 import math
-from collections import defaultdict
 
-# Constants
+
+
 RHO = 0.95
 EPSILON = 1e-6
 RATE = 0.05
@@ -122,8 +128,17 @@ class Model:
     def write_dict_to_file(self, filename):
         self.dict.write_to_file(filename)
 
-def train(out_file, factor, cores, l1_reg, l2_reg, word_vecs, vocab):
-    model = Model(factor, word_vecs[0].shape[0], len(word_vecs))
+
+#TODO: continue refactoring from here
+def optimise(
+    word_vectors:list[ndarray], 
+    vocabulary:list[str],
+    factor:int, 
+    l1_regularisation_penalty:float, 
+    l2_regularisation_penalty:float, 
+    output_file:str, 
+) -> None:
+    model = Model(factor, word_vectors[0].shape[0], len(word_vectors))
     avg_error = 1
     prev_avg_err = 0
     iter = 0
@@ -133,14 +148,14 @@ def train(out_file, factor, cores, l1_reg, l2_reg, word_vecs, vocab):
         num_words = 0
         total_error = 0
         atom_l1_norm = 0
-        for word_id, word_vec in enumerate(word_vecs):
+        for word_id, word_vec in enumerate(word_vectors):
             pred_vec = model.predict_vector(word_vec, word_id)
             diff_vec = word_vec - pred_vec
             error = np.sum(diff_vec ** 2)
             total_error += error
             num_words += 1
             atom_l1_norm += np.sum(np.abs(model.atom[word_id].var))
-            model.update_params(word_id, RATE, diff_vec, l1_reg, l2_reg)
+            model.update_params(word_id, RATE, diff_vec, l1_regularisation_penalty, l2_regularisation_penalty)
             print(f"\rProcessed words: {num_words}", end='')
         prev_avg_err = avg_error
         avg_error = total_error / num_words
@@ -148,42 +163,25 @@ def train(out_file, factor, cores, l1_reg, l2_reg, word_vecs, vocab):
         print(f"Dict L2 norm: {np.linalg.norm(model.dict.var)}")
         print(f"Avg Atom L1 norm: {atom_l1_norm / num_words}")
 
-    model.write_vectors_to_file(out_file, vocab)
-    model.write_dict_to_file(out_file + "_dict")
+    model.write_vectors_to_file(output_file, vocabulary)
+    model.write_dict_to_file(output_file + "_dict")
 
-def read_vecs_from_file(filename):
-    vocab = defaultdict(str)
-    word_vecs = []
-    with open(filename, 'r') as f:
-        for line in f:
-            parts = line.strip().split()
-            word = parts[0]
-            vec = np.array([float(x) for x in parts[1:]]).reshape(-1, 1)
-            vocab[len(vocab)] = word
-            word_vecs.append(vec)
-    return vocab, word_vecs
 
-if __name__ == "__main__":
-    import sys
-    if len(sys.argv) == 7:
-        vec_corpus = sys.argv[1]
-        factor = int(sys.argv[2])
-        l1_reg = float(sys.argv[3])
-        l2_reg = float(sys.argv[4])
-        num_cores = int(sys.argv[5])
-        outfilename = sys.argv[6]
+        
 
-        vocab, word_vecs = read_vecs_from_file(vec_corpus)
+input_file = Path("sample_vecs.txt")
+vocabulary, word_vectors = [], []
+with input_file.open() as f:
+    for line in f.readlines():
+        parts = line.strip().split()
+        vocabulary.append(parts[0])
+        word_vectors.append(array(list(map(float,parts[1:]))).reshape(-1,1))
 
-        print("Model specification")
-        print("----------------")
-        print(f"Vector length: {word_vecs[0].shape[0]}")
-        print(f"Dictionary length: {factor * word_vecs[0].shape[0]}")
-        print(f"L2 Reg (Dict): {l2_reg}")
-        print(f"L1 Reg (Atom): {l1_reg}")
-        print(f"Number of Cores: {num_cores}")
-        print("----------------")
-
-        train(outfilename, factor, num_cores, l1_reg, l2_reg, word_vecs, vocab)
-    else:
-        print(f"Usage: {sys.argv[0]} vec_corpus factor l1_reg l2_reg num_cores outfilename")
+optimise(
+    output_file="out_vecs.txt", 
+    factor=3, #10, #how much larger the embeddings will be
+    l1_regularisation_penalty=0.5, 
+    l2_regularisation_penalty=1e-5, 
+    word_vectors=word_vectors, 
+    vocabulary=vocabulary
+)    
