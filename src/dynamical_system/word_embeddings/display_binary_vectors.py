@@ -1,18 +1,10 @@
-from numpy import array, stack
-
-vocabulary = {}
-with open('out_vecs.txt') as f:
-    for line in f.readlines():
-        if line.isspace():
-            continue 
-        vector = line.split(' ')
-        vocabulary[vector[0].strip()] = (array(list(map(float, vector[1:]))) > 0).astype(dtype=int)
-
+from numpy import stack
+from utils import read_binary_vectors_from_file
 from matplotlib.pyplot import subplots, show
 from matplotlib.ticker import MaxNLocator
 
+vocabulary = read_binary_vectors_from_file(filename='binary_vectors.txt')
 vocab = stack(list(vocabulary.values()))
-
 labels = list(vocabulary)
 n = len(labels)
 fig, ax = subplots()

@@ -1,187 +1,102 @@
 """https://github.com/mfaruqui/sparse-coding"""
+
 from numpy import array, ndarray
-from pathlib import Path
+from numpy import sum as np_sum
+from numpy import abs as np_abs
+from numpy.linalg import norm as np_norm
 
-#TODO: refactor
-#TODO: double check refactored python file same as original C file
-
-
-
-import numpy as np
-import math
+from utils_to_refactor import Param
+from utils import read_dense_vectors_from_file, binarise_vectors_by_threshold, write_vectors_to_file
 
 
+class Optimiser:
+    def __init__(
+        self, 
+        vector_length:int, 
+        vocabulary_size:int,
+        n_iterations:int,
+        sparse_vector_enlargement_factor:int=10,
+        l1_regularisation_penalty:float=5e-1, 
+        l2_regularisation_penalty:float=1e-5, 
+        max_average_error:float=5e-2,
+        max_average_error_delta:float=1e-3,
+        learning_rate:float=5e-2,
+        max_iterations:int=75,
+    ) -> None:
+        self.learning_rate=learning_rate
+        self.n_iterations = n_iterations
+        self.max_iterations = max_iterations
+        self.max_average_error_delta = max_average_error_delta
+        self.max_average_error = max_average_error
+        self.l1_regularisation_penalty=l1_regularisation_penalty
+        self.l2_regularisation_penalty=l2_regularisation_penalty 
+        self.vec_len = vector_length
+        self.factor = sparse_vector_enlargement_factor
 
-RHO = 0.95
-EPSILON = 1e-6
-RATE = 0.05
-
-def sgn(val):
-    return np.sign(val)
-
-class Param:
-    def __init__(self):
-        self.var = None
-        self._del_var = None
-        self._del_grad = None
-        self._grad_sum = None
-        self._epsilon = None
-        self._update_num = 0
-
-    def init(self, rows, cols):
-        if cols == 1:
-            self.var = (0.6 / math.sqrt(rows)) * np.random.randn(rows, 1)
-            self._del_var = np.zeros((rows, 1))
-            self._del_grad = np.zeros((rows, 1))
-            self._grad_sum = np.zeros((rows, 1))
-            self._epsilon = EPSILON * np.ones((rows, 1))
-        else:
-            self.var = (0.6 / math.sqrt(rows + cols)) * np.random.randn(rows, cols)
-            self._del_var = np.zeros((rows, cols))
-            self._del_grad = np.zeros((rows, cols))
-            self._grad_sum = np.zeros((rows, cols))
-            self._epsilon = EPSILON * np.ones((rows, cols))
-
-    def adagrad_update(self, rate, grad):
-        self._del_grad += np.abs(grad) ** 2
-        self._grad_sum += grad
-        self.var -= rate * grad / np.sqrt(self._del_grad + self._epsilon)
-
-    def adagrad_update_with_l1_reg(self, rate, grad, l1_reg):
-        self._update_num += 1
-        self._del_grad += np.abs(grad) ** 2
-        self._grad_sum += grad
-        for i in range(self.var.shape[0]):
-            for j in range(self.var.shape[1]):
-                diff = abs(self._grad_sum[i, j]) - self._update_num * l1_reg
-                if diff <= 0:
-                    self.var[i, j] = 0
-                else:
-                    self.var[i, j] = -sgn(self._grad_sum[i, j]) * rate * diff / math.sqrt(self._del_grad[i, j] + EPSILON)
-
-    def adagrad_update_with_l1_reg_non_neg(self, rate, grad, l1_reg):
-        self._update_num += 1
-        self._del_grad += np.abs(grad) ** 2
-        self._grad_sum += grad
-        for i in range(self.var.shape[0]):
-            for j in range(self.var.shape[1]):
-                diff = abs(self._grad_sum[i, j]) - self._update_num * l1_reg
-                if diff <= 0:
-                    self.var[i, j] = 0
-                else:
-                    temp = -sgn(self._grad_sum[i, j]) * rate * diff / math.sqrt(self._del_grad[i, j] + EPSILON)
-                    if temp >= 0:
-                        self.var[i, j] = temp
-                    else:
-                        self.var[i, j] = 0
-
-    def write_to_file(self, filename):
-        with open(filename, 'w') as f:
-            f.write(f"{self.var.shape[0]} {self.var.shape[1]} ")
-            for i in range(self.var.shape[0]):
-                for j in range(self.var.shape[1]):
-                    f.write(f"{self.var[i, j]} ")
-            f.write("\n")
-
-    def read_from_file(self, filename):
-        with open(filename, 'r') as f:
-            line = f.readline().strip()
-            data = line.split()
-            rows = int(data[0])
-            cols = int(data[1])
-            self.var = np.zeros((rows, cols))
-            idx = 2
-            for i in range(rows):
-                for j in range(cols):
-                    self.var[i, j] = float(data[idx])
-                    idx += 1
-
-class Model:
-    def __init__(self, times, vector_len, vocab_len):
-        self.vec_len = vector_len
-        self.factor = times
+        #TODO: update this when class modified
         self.dict = Param()
         self.dict.init(self.vec_len, self.factor * self.vec_len)
-        self.atom = [Param() for _ in range(vocab_len)]
-        for vec in self.atom:
+        self.sparse_positive_vectors = [Param() for _ in range(vocabulary_size)]
+        for vec in self.sparse_positive_vectors:
             vec.init(self.factor * self.vec_len, 1)
 
-    def non_linearity(self, vec):
-        np.clip(vec, -1, 1, out=vec)
+    def forward_pass(self, vector_index:int) -> ndarray:
+        return self.dict.var @ self.sparse_positive_vectors[vector_index].var
 
-    def predict_vector(self, word_vec, word_index):
-        return self.dict.var @ self.atom[word_index].var
+    def backward_pass(self, vector_index:int, difference_vector:ndarray) -> None:
+        dict_grad = -2 * difference_vector @ self.sparse_positive_vectors[vector_index].var.T + 2 * self.l2_regularisation_penalty * self.dict.var
+        self.dict.adagrad_update(self.learning_rate, dict_grad)
+        atom_elem_grad = -2 * self.dict.var.T @ difference_vector
+        self.sparse_positive_vectors[vector_index].adagrad_update_with_l1_reg_non_neg(self.learning_rate, atom_elem_grad, self.l1_regularisation_penalty)
 
-    def update_params(self, word_index, rate, diff_vec, l1_reg, l2_reg):
-        dict_grad = -2 * diff_vec @ self.atom[word_index].var.T + 2 * l2_reg * self.dict.var
-        self.dict.adagrad_update(rate, dict_grad)
-        atom_elem_grad = -2 * self.dict.var.T @ diff_vec
-        self.atom[word_index].adagrad_update_with_l1_reg_non_neg(rate, atom_elem_grad, l1_reg)
+    def sparsify_dense_vectors(self,dense_vectors:ndarray) -> ndarray:
+        average_error,previous_average_error = 1,0
+        for iteration in range(self.n_iterations):
+            if self.stopping_condition(
+                iteration=iteration,
+                average_error=average_error,
+                average_error_delta=abs(average_error - previous_average_error)
+            ):
+                break
+            total_error,atom_l1_norm = 0,0
+            for index, word_vector in enumerate(dense_vectors):
+                predicted_vector = self.forward_pass(vector_index=index)
+                diff_vector = word_vector - predicted_vector
+                total_error += np_sum(diff_vector ** 2)
+                atom_l1_norm += np_sum(np_abs(self.sparse_positive_vectors[index].var)) 
+                self.backward_pass(
+                    vector_index=index, 
+                    difference_vector=diff_vector, 
+                )
+                print(f"\rProcessed words: {index}", end='')
+            previous_average_error = average_error
+            average_error = total_error / len(dense_vectors)
+            print(f"\nIteration: {iteration}\nError per example: {average_error}\nDict L2 norm: {np_norm(self.dict.var)}\nAvg Atom L1 norm: {atom_l1_norm / len(dense_vectors)}")
+        return self.sparse_vectors()
+    
+    def stopping_condition(
+        self, 
+        iteration:int,
+        average_error:float, 
+        average_error_delta:float
+    ) -> bool:
+        return iteration > self.max_iterations and average_error > self.max_average_error and average_error_delta > self.max_average_error_delta
 
-    def write_vectors_to_file(self, filename, vocab):
-        with open(filename, 'w') as outfile:
-            for i, atom in enumerate(self.atom):
-                word = vocab[i]
-                vec_str = ' '.join(f"{val:.3f}" for val in atom.var.flatten())
-                outfile.write(f"{word} {vec_str}\n")
-
-    def write_dict_to_file(self, filename):
-        self.dict.write_to_file(filename)
-
-
-#TODO: continue refactoring from here
-def optimise(
-    word_vectors:list[ndarray], 
-    vocabulary:list[str],
-    factor:int, 
-    l1_regularisation_penalty:float, 
-    l2_regularisation_penalty:float, 
-    output_file:str, 
-) -> None:
-    model = Model(factor, word_vectors[0].shape[0], len(word_vectors))
-    avg_error = 1
-    prev_avg_err = 0
-    iter = 0
-    while iter < 20 or (avg_error > 0.05 and iter < 75 and abs(avg_error - prev_avg_err) > 0.001):
-        iter += 1
-        print(f"\nIteration: {iter}")
-        num_words = 0
-        total_error = 0
-        atom_l1_norm = 0
-        for word_id, word_vec in enumerate(word_vectors):
-            pred_vec = model.predict_vector(word_vec, word_id)
-            diff_vec = word_vec - pred_vec
-            error = np.sum(diff_vec ** 2)
-            total_error += error
-            num_words += 1
-            atom_l1_norm += np.sum(np.abs(model.atom[word_id].var))
-            model.update_params(word_id, RATE, diff_vec, l1_regularisation_penalty, l2_regularisation_penalty)
-            print(f"\rProcessed words: {num_words}", end='')
-        prev_avg_err = avg_error
-        avg_error = total_error / num_words
-        print(f"\nError per example: {avg_error}")
-        print(f"Dict L2 norm: {np.linalg.norm(model.dict.var)}")
-        print(f"Avg Atom L1 norm: {atom_l1_norm / num_words}")
-
-    model.write_vectors_to_file(output_file, vocabulary)
-    model.write_dict_to_file(output_file + "_dict")
+    def sparse_vectors(self) -> ndarray:
+        return array([vector.var.flatten() for vector in self.sparse_positive_vectors])
+    
 
 
-        
 
-input_file = Path("sample_vecs.txt")
-vocabulary, word_vectors = [], []
-with input_file.open() as f:
-    for line in f.readlines():
-        parts = line.strip().split()
-        vocabulary.append(parts[0])
-        word_vectors.append(array(list(map(float,parts[1:]))).reshape(-1,1))
-
-optimise(
-    output_file="out_vecs.txt", 
-    factor=3, #10, #how much larger the embeddings will be
-    l1_regularisation_penalty=0.5, 
-    l2_regularisation_penalty=1e-5, 
-    word_vectors=word_vectors, 
-    vocabulary=vocabulary
-)    
+vocabulary = read_dense_vectors_from_file(filename="dense_vectors.txt")
+dense_word_vectors = array(list(vocabulary.values()))
+vector_size,vector_length,_ = dense_word_vectors.shape
+optimiser = Optimiser(
+    vector_length=vector_length, 
+    vocabulary_size=vector_size,
+    sparse_vector_enlargement_factor=3,
+    n_iterations=20,
+)
+sparse_positive_word_vectors = optimiser.sparsify_dense_vectors(dense_vectors=dense_word_vectors)
+binary_word_vectors = binarise_vectors_by_threshold(vectors=sparse_positive_word_vectors, threshold=0.0)
+write_vectors_to_file(filename="binary_vectors.txt", vocabulary=list(vocabulary), vectors=binary_word_vectors)
