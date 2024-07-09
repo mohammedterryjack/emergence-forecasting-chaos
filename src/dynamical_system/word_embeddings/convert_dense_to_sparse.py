@@ -5,7 +5,7 @@ from numpy import sum as np_sum
 from numpy import abs as np_abs
 from numpy.linalg import norm as np_norm
 
-from utils_to_refactor import Param
+from weight import Weight
 from utils import read_dense_vectors_from_file, binarise_vectors_by_threshold, write_vectors_to_file
 
 
@@ -23,6 +23,17 @@ class Optimiser:
         learning_rate:float=5e-2,
         max_iterations:int=75,
     ) -> None:
+        self.dict = Weight(
+            rows=vector_length,
+            cols=sparse_vector_enlargement_factor * vector_length
+        )
+        self.sparse_positive_vectors = [
+            Weight(
+                rows=sparse_vector_enlargement_factor * vector_length,
+                cols=1
+            ) for _ in range(vocabulary_size)
+        ]
+
         self.learning_rate=learning_rate
         self.n_iterations = n_iterations
         self.max_iterations = max_iterations
@@ -30,15 +41,6 @@ class Optimiser:
         self.max_average_error = max_average_error
         self.l1_regularisation_penalty=l1_regularisation_penalty
         self.l2_regularisation_penalty=l2_regularisation_penalty 
-        self.vec_len = vector_length
-        self.factor = sparse_vector_enlargement_factor
-
-        #TODO: update this when class modified
-        self.dict = Param()
-        self.dict.init(self.vec_len, self.factor * self.vec_len)
-        self.sparse_positive_vectors = [Param() for _ in range(vocabulary_size)]
-        for vec in self.sparse_positive_vectors:
-            vec.init(self.factor * self.vec_len, 1)
 
     def forward_pass(self, vector_index:int) -> ndarray:
         return self.dict.var @ self.sparse_positive_vectors[vector_index].var
@@ -49,7 +51,7 @@ class Optimiser:
         atom_elem_grad = -2 * self.dict.var.T @ difference_vector
         self.sparse_positive_vectors[vector_index].adagrad_update_with_l1_reg_non_neg(self.learning_rate, atom_elem_grad, self.l1_regularisation_penalty)
 
-    def sparsify_dense_vectors(self,dense_vectors:ndarray) -> ndarray:
+    def sparsify_dense_vectors(self,dense_vectors:ndarray) -> None:
         average_error,previous_average_error = 1,0
         for iteration in range(self.n_iterations):
             if self.stopping_condition(
@@ -72,7 +74,6 @@ class Optimiser:
             previous_average_error = average_error
             average_error = total_error / len(dense_vectors)
             print(f"\nIteration: {iteration}\nError per example: {average_error}\nDict L2 norm: {np_norm(self.dict.var)}\nAvg Atom L1 norm: {atom_l1_norm / len(dense_vectors)}")
-        return self.sparse_vectors()
     
     def stopping_condition(
         self, 
@@ -97,6 +98,6 @@ optimiser = Optimiser(
     sparse_vector_enlargement_factor=3,
     n_iterations=20,
 )
-sparse_positive_word_vectors = optimiser.sparsify_dense_vectors(dense_vectors=dense_word_vectors)
-binary_word_vectors = binarise_vectors_by_threshold(vectors=sparse_positive_word_vectors, threshold=0.0)
+optimiser.sparsify_dense_vectors(dense_vectors=dense_word_vectors)
+binary_word_vectors = binarise_vectors_by_threshold(vectors=optimiser.sparse_vectors(), threshold=0.0)
 write_vectors_to_file(filename="binary_vectors.txt", vocabulary=list(vocabulary), vectors=binary_word_vectors)
