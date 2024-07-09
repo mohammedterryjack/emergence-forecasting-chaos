@@ -1,7 +1,10 @@
+from json import dumps
+
 from numpy import array, ndarray
 from numpy import sum as np_sum
 from numpy import abs as np_abs
 from numpy.linalg import norm as np_norm
+from matplotlib.pyplot import plot, show, legend, xlabel 
 
 from matrix import SparseMatrix, NonNegativeSparseMatrix
 
@@ -27,7 +30,7 @@ class Optimiser:
                 height=1,
             ) for _ in range(vocabulary_size)
         ]
-
+        self.history = []
         self.n_iterations = n_iterations
         self.max_iterations = max_iterations
         self.max_average_error_delta = max_average_error_delta
@@ -54,12 +57,12 @@ class Optimiser:
                 average_error_delta=abs(average_error - previous_average_error)
             ):
                 break
-            total_error,l1_error = 0,0
+            total_error,total_l1_error = 0,0
             for index, word_vector in enumerate(dense_vectors):
                 predicted_vector = self.forward_pass(vector_index=index)
                 delta = word_vector - predicted_vector
                 total_error += np_sum(delta ** 2)
-                l1_error += np_sum(np_abs(self.sparse_positive_vectors[index].values)) 
+                total_l1_error += np_sum(np_abs(self.sparse_positive_vectors[index].values)) 
                 self.backward_pass(
                     vector_index=index, 
                     difference_vector=delta, 
@@ -67,7 +70,12 @@ class Optimiser:
                 print(f"\rProcessed words: {index}", end='')
             previous_average_error = average_error
             average_error = total_error / len(dense_vectors)
-            print(f"\nIteration: {iteration}\nError per example: {average_error}\nDict L2 norm: {np_norm(self.dictionary_vectors.values)}\nAvg Atom L1 norm: {l1_error / len(dense_vectors)}")
+            self.history.append({
+                "Error per example": average_error,
+                "Dict L2 norm": np_norm(self.dictionary_vectors.values),
+                "Avg Atom L1 norm": total_l1_error / len(dense_vectors)
+            })
+            print(dumps(self.history[-1],indent=1))
     
     def stopping_condition(
         self, 
@@ -80,3 +88,9 @@ class Optimiser:
     def sparse_vectors(self) -> ndarray:
         return array([vector.values.flatten() for vector in self.sparse_positive_vectors])
     
+    def plot(self) -> None:
+        for key in ("Error per example", "Dict L2 norm", "Avg Atom L1 norm"):
+            plot([report[key] for report in self.history], label=key)
+        legend()
+        xlabel('Iteration')
+        show()
