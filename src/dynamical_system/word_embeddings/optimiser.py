@@ -6,7 +6,7 @@ from numpy import abs as np_abs
 from numpy.linalg import norm as np_norm
 from matplotlib.pyplot import plot, show, legend, xlabel 
 
-from matrix import SparseMatrix, NonNegativeSparseMatrix
+from matrix import NonNegativeSparseMatrix, SparseMatrix
 
 class Optimiser:
     def __init__(

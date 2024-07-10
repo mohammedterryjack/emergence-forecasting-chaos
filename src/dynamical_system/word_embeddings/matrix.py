@@ -27,9 +27,8 @@ class NonNegativeSparseMatrix(SparseMatrix):
         self.update_number += 1
         self.gradient_delta += gradient ** 2
         self.gradient_sum += gradient
-        width,height = self.shape
-        for i in range(width):
-            for j in range(height):
-                delta = abs(self.gradient_sum[i, j]) - self.update_number * self.penalty
-                temp = -sign(self.gradient_sum[i, j]) * self.learning_rate * delta / (self.gradient_delta[i, j]**0.5 + 1e-6)
-                self.values[i,j] = 0 if delta <= 0 else temp if temp >= 0 else 0
+        delta = abs(self.gradient_sum) - self.update_number * self.penalty
+        temp = -sign(self.gradient_sum) * self.learning_rate * delta / (self.gradient_delta**0.5 + 1e-6)
+        temp[temp<0]=0
+        self.values[delta<0]=0
+        self.values[delta>0]=temp[delta>0]
