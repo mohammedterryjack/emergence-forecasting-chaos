@@ -71,6 +71,7 @@ class Optimiser:
             previous_average_error = average_error
             average_error = total_error / len(dense_vectors)
             self.history.append({
+                "Iteration":f"{iteration+1}/{self.n_iterations}",
                 "Error per example": average_error,
                 "Dict L2 norm": np_norm(self.dictionary_vectors.values),
                 "Avg Atom L1 norm": total_l1_error / len(dense_vectors)
