@@ -1,35 +1,23 @@
 """
 https://github.com/alex-tifrea/poincare_glove?tab=readme-ov-file
 https://polybox.ethz.ch/index.php/s/TzX6cXGqCX5KvAn
+https://www.kaggle.com/datasets/rtatman/english-word-frequency
 """
 from urllib.request import urlretrieve
 from pathlib import Path
 
 from pandas import read_csv
-from numpy import array, stack
-from matplotlib.pyplot import subplots, show
-from matplotlib.ticker import MaxNLocator
+from numpy import array
 
 from optimiser import Optimiser
 from utils import (
     read_binary_vectors_from_file,
+    display_binary_vectors,
     read_dense_vectors_from_file, 
     binarise_vectors_by_threshold, 
-    write_vectors_to_file
+    write_vectors_to_file,
+    k_most_similar_words
 )
-
-def display_binary_vectors(fname:str) -> None:
-    vocabulary = read_binary_vectors_from_file(
-        filename=fname
-    )
-    vocab = stack(list(vocabulary.values()))
-    labels = list(vocabulary)
-    n = len(labels)
-    _, ax = subplots()
-    ax.yaxis.set_major_formatter(lambda tick_val,_: labels[int(tick_val)] if 0 <= int(tick_val)< n else '')
-    ax.yaxis.set_major_locator(MaxNLocator(integer=True))
-    ax.imshow(vocab)
-    show()
 
 def binarise_word_vectors(fname:str,sparse_vector_enlargement_factor:int,n_iterations:int) -> str:
     out_fname = fname.replace('.txt','_binary.txt')
@@ -86,7 +74,8 @@ def download_file(url:str, out_path:str="") -> str:
     return fname
 
 vectors_fname = download_file(
-    url="https://polybox.ethz.ch/index.php/s/TzX6cXGqCX5KvAn/download?path=%2F&files=poincare_glove_50x2D_cosh-dist-sq_vocab50k.txt",
+    #url="https://polybox.ethz.ch/index.php/s/TzX6cXGqCX5KvAn/download?path=%2F&files=poincare_glove_50x2D_cosh-dist-sq_vocab50k.txt",
+    url="https://polybox.ethz.ch/index.php/s/TzX6cXGqCX5KvAn/download?path=%2F&files=vanilla_glove_100D_vocab50k.txt",
     out_path="embeddings"
 )
 vectors_fname = store_most_frequent_words(
@@ -100,3 +89,9 @@ vectors_fname = binarise_word_vectors(
     n_iterations=20
 )
 display_binary_vectors(fname=vectors_fname)
+results = k_most_similar_words(
+    word_vectors=read_binary_vectors_from_file(filename=vectors_fname),
+    word="rabbit",
+    k=5
+)
+print(results)
