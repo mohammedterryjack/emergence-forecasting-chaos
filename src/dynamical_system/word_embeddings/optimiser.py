@@ -57,6 +57,7 @@ class Optimiser:
                 average_error_delta=abs(average_error - previous_average_error)
             ):
                 break
+
             total_error,total_l1_error = 0,0
             for index, word_vector in enumerate(dense_vectors):
                 predicted_vector = self.forward_pass(vector_index=index)
@@ -64,8 +65,8 @@ class Optimiser:
                 total_error += np_sum(delta ** 2)
                 total_l1_error += np_sum(np_abs(self.sparse_positive_vectors[index].values)) 
                 self.backward_pass(
-                    vector_index=index, 
-                    difference_vector=delta, 
+                   vector_index=index, 
+                   difference_vector=delta, 
                 )
                 print(f"\rProcessed words: {index}", end='')
             previous_average_error = average_error

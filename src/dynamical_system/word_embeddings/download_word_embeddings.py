@@ -96,7 +96,7 @@ vectors_fname = store_most_frequent_words(
 )
 vectors_fname = binarise_word_vectors(
     fname=vectors_fname,
-    sparse_vector_enlargement_factor=30,
-    n_iterations=20
+    sparse_vector_enlargement_factor=10,
+    n_iterations=50
 )
 display_binary_vectors(fname=vectors_fname)
