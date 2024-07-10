@@ -2,7 +2,6 @@ from numpy import array, ndarray, stack, argsort
 from matplotlib.pyplot import subplots, show
 from matplotlib.ticker import MaxNLocator
 
-
 def read_binary_vectors_from_file(filename:str) -> dict[str,ndarray]:
     vocabulary = {}
     with open(filename) as f:

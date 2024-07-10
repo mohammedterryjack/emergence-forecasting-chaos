@@ -74,9 +74,8 @@ def download_file(url:str, out_path:str="") -> str:
     return fname
 
 vectors_fname = download_file(
-    #url="https://polybox.ethz.ch/index.php/s/TzX6cXGqCX5KvAn/download?path=%2F&files=poincare_glove_50x2D_cosh-dist-sq_vocab50k.txt",
     url="https://polybox.ethz.ch/index.php/s/TzX6cXGqCX5KvAn/download?path=%2F&files=vanilla_glove_100D_vocab50k.txt",
-    out_path="embeddings"
+    out_path="binarised_from_dense_word_embeddings/embeddings"
 )
 vectors_fname = store_most_frequent_words(
     path_word_frequency_csv="unigram_freq.csv",
