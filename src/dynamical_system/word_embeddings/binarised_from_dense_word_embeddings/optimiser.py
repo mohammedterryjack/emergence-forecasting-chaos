@@ -1,3 +1,5 @@
+"""https://github.com/mfaruqui/sparse-coding"""
+
 from json import dumps
 
 from numpy import array, ndarray
