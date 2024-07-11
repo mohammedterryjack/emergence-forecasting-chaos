@@ -5,7 +5,7 @@ from matplotlib.pyplot import subplots, show
 from matplotlib.ticker import MaxNLocator
 
 from optimiser import Optimiser
-from utils import (
+from dynamical_system.word_embeddings.binarised_from_dense_word_embeddings.utils import (
     read_dense_vectors_from_file, 
     binarise_vectors_by_threshold, 
     write_vectors_to_file,
@@ -27,12 +27,12 @@ optimiser.learn_sparse_vectors(dense_vectors=dense_word_vectors)
 optimiser.plot()
 binary_word_vectors = binarise_vectors_by_threshold(vectors=optimiser.sparse_vectors(), threshold=0.0)
 write_vectors_to_file(
-    filename="binarised_from_dense_word_embeddings/example/binary_vectors.txt", 
+    filename="example/binary_vectors.txt", 
     vocabulary=list(vocabulary), 
     vectors=binary_word_vectors
 )
 vocabulary = read_binary_vectors_from_file(
-    filename='binarised_from_dense_word_embeddings/example/binary_vectors.txt'
+    filename='example/binary_vectors.txt'
 )
 vocab = stack(list(vocabulary.values()))
 labels = list(vocabulary)

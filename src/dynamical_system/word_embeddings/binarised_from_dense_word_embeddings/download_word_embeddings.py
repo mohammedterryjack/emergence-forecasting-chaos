@@ -16,7 +16,8 @@ from utils import (
     read_dense_vectors_from_file, 
     binarise_vectors_by_threshold, 
     write_vectors_to_file,
-    k_most_similar_words
+    k_most_similar_words,
+    words_by_feature_index
 )
 
 def binarise_word_vectors(fname:str,sparse_vector_enlargement_factor:int,n_iterations:int) -> str:
@@ -46,12 +47,12 @@ def binarise_word_vectors(fname:str,sparse_vector_enlargement_factor:int,n_itera
 def store_most_frequent_words(
     path_word_frequency_csv:str, 
     path_word_vectors:str,
-    n:int
+    n_words:int
 ) -> str:
-    out_path = path_word_vectors.replace('.txt',f'_filtered_by_{n//1000}k_most_common_words.txt')
+    out_path = path_word_vectors.replace('.txt',f'_filtered_by_{n_words//1000}k_most_common_words.txt')
     if not Path(out_path).exists():
         data = read_csv(path_word_frequency_csv) 
-        common_words = set(data["word"][:n])
+        common_words = set(data["word"][:n_words])
         word_vectors = {}
         with open(path_word_vectors) as f:
             for line in f.readlines():
@@ -75,12 +76,12 @@ def download_file(url:str, out_path:str="") -> str:
 
 vectors_fname = download_file(
     url="https://polybox.ethz.ch/index.php/s/TzX6cXGqCX5KvAn/download?path=%2F&files=vanilla_glove_100D_vocab50k.txt",
-    out_path="binarised_from_dense_word_embeddings/embeddings"
+    out_path="embeddings"
 )
 vectors_fname = store_most_frequent_words(
     path_word_frequency_csv="unigram_freq.csv",
     path_word_vectors=vectors_fname,
-    n=10000
+    n_words=10000
 )
 vectors_fname = binarise_word_vectors(
     fname=vectors_fname,
@@ -88,9 +89,15 @@ vectors_fname = binarise_word_vectors(
     n_iterations=20
 )
 display_binary_vectors(fname=vectors_fname)
+word_vectors = read_binary_vectors_from_file(filename=vectors_fname)
 results = k_most_similar_words(
-    word_vectors=read_binary_vectors_from_file(filename=vectors_fname),
+    word_vectors=word_vectors,
     word="rabbit",
     k=5
+)
+print(results)
+results = words_by_feature_index(
+    feature_index=100,
+    word_vectors=word_vectors
 )
 print(results)
