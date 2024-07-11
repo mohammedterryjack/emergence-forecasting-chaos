@@ -25,7 +25,7 @@ def read_dense_vectors_from_file(filename:str) -> dict[str,ndarray]:
             vocabulary[word] = array(list(map(float,parts[1:]))).reshape(-1,1)
     return vocabulary
 
-def write_vectors_to_file(filename:str, vocabulary:list[str], vectors:ndarray) -> None:
+def write_binary_vectors_to_file(filename:str, vocabulary:list[str], vectors:ndarray) -> None:
     with open(filename, 'w') as outfile:
         for word, vector in zip(vocabulary,vectors):
             outfile.write(f"{word} {' '.join(map(str,vector))}\n")

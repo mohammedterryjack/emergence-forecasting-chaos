@@ -2,7 +2,7 @@ from pathlib import Path
 
 from numpy import array
 
-from utils import read_dense_vectors_from_file, binarise_vectors_by_threshold, write_vectors_to_file
+from utils import read_dense_vectors_from_file, binarise_vectors_by_threshold, write_binary_vectors_to_file
 from optimiser import Optimiser
 
 
@@ -23,7 +23,7 @@ def binarise_word_vectors(fname:str,sparse_vector_enlargement_factor:int,n_itera
         optimiser.learn_sparse_vectors(dense_vectors=dense_word_vectors)
         optimiser.plot()
         binary_word_vectors = binarise_vectors_by_threshold(vectors=optimiser.sparse_vectors(), threshold=0.0)
-        write_vectors_to_file(
+        write_binary_vectors_to_file(
             filename=out_fname, 
             vocabulary=list(vocabulary), 
             vectors=binary_word_vectors
