@@ -12,7 +12,8 @@ from utils import (
     words_by_feature_index,
     download_file,
     store_most_frequent_words,
-    project_word_vectors_2d
+    project_word_vectors_2d,
+    display_spacetime_of_sentence
 )
 
 
@@ -23,7 +24,7 @@ vectors_fname = download_file(
 vectors_fname = store_most_frequent_words(
     path_word_frequency_csv="../unigram_freq.csv",
     path_word_vectors=vectors_fname,
-    n_words=10000
+    n_words=30000
 )
 vectors_fname = binarise_word_vectors(
     fname=vectors_fname,
@@ -46,3 +47,7 @@ results = words_by_feature_index(
     word_vectors=word_vectors
 )
 print(f"feature {feature_index}:{results}")
+display_spacetime_of_sentence(
+    word_vectors=word_vectors,
+    sentence="once upon a time there lived a boy and his sister in a village they went to fetch some water"
+)

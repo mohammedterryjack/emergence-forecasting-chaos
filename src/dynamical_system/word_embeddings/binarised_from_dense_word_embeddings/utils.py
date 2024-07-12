@@ -102,3 +102,17 @@ def project_word_vectors_2d(word_vectors:dict[str,ndarray]) -> None:
         ax.text(x,y,word) 
         ax.plot(x,y)
     show()
+
+def display_spacetime_of_sentence(word_vectors:dict[str,ndarray], sentence:str) -> None:
+    labels,vectors = [],[]
+    for word in sentence.lower().split():
+        if word in word_vectors:
+            labels.append(word)
+            vectors.append(word_vectors[word])
+    n = len(labels)
+    _, ax = subplots()
+    ax.yaxis.set_major_formatter(lambda tick_val,_: labels[int(tick_val)] if 0 <= int(tick_val)< n else '')
+    ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+    ax.imshow(stack(vectors))
+    show()
+    
