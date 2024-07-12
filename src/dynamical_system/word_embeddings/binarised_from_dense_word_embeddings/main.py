@@ -22,9 +22,9 @@ vectors_fname = download_file(
     out_path="embeddings"
 )
 vectors_fname = store_most_frequent_words(
-    path_word_frequency_csv="../unigram_freq.csv",
-    path_word_vectors=vectors_fname,
-    n_words=30000
+   path_word_frequency_csv="../unigram_freq.csv",
+   path_word_vectors=vectors_fname,
+   n_words=-1
 )
 vectors_fname = binarise_word_vectors(
     fname=vectors_fname,

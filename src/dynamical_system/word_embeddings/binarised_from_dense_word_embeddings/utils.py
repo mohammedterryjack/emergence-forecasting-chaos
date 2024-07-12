@@ -68,7 +68,7 @@ def store_most_frequent_words(
     out_path = path_word_vectors.replace('.txt',f'_filtered_by_{n_words//1000}k_most_common_words.txt')
     if not Path(out_path).exists():
         data = read_csv(path_word_frequency_csv) 
-        common_words = set(data["word"][:n_words])
+        common_words = set(data["word"][:n_words].dropna())
         word_vectors = {}
         with open(path_word_vectors) as f:
             for line in f.readlines():
