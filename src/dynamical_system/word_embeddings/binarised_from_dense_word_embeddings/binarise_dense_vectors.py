@@ -10,7 +10,7 @@ def binarise_word_vectors(fname:str,sparse_vector_enlargement_factor:int,n_itera
     out_fname = fname.replace('.txt','_binary.txt')
     if not Path(out_fname).exists():
         vocabulary = read_dense_vectors_from_file(
-            filename=fname
+           filename=fname
         )
         dense_word_vectors = array(list(vocabulary.values()))
         vector_size,vector_length,_ = dense_word_vectors.shape

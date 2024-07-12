@@ -90,7 +90,7 @@ def download_file(url:str, out_path:str="") -> str:
         urlretrieve(url, fname)
     return fname
 
-def project_word_vectors_2d(word_vectors:dict[str,ndarray]) -> None:
+def project_word_vectors_2d(word_vectors:dict[str,ndarray]) -> None:    
     _, ax = subplots()
     coordinates = KernelPCA(
         n_components=2, 
@@ -115,4 +115,3 @@ def display_spacetime_of_sentence(word_vectors:dict[str,ndarray], sentence:str) 
     ax.yaxis.set_major_locator(MaxNLocator(integer=True))
     ax.imshow(stack(vectors))
     show()
-    
