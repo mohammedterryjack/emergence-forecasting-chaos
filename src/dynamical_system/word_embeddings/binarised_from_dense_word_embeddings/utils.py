@@ -5,6 +5,7 @@ from pandas import read_csv
 from numpy import array, ndarray, stack, argsort, argwhere
 from matplotlib.pyplot import subplots, show
 from matplotlib.ticker import MaxNLocator
+from sklearn.decomposition import KernelPCA
 
 def read_binary_vectors_from_file(filename:str) -> dict[str,ndarray]:
     vocabulary = {}
@@ -88,3 +89,16 @@ def download_file(url:str, out_path:str="") -> str:
     if not Path(fname).exists():
         urlretrieve(url, fname)
     return fname
+
+def project_word_vectors_2d(word_vectors:dict[str,ndarray]) -> None:
+    _, ax = subplots()
+    coordinates = KernelPCA(
+        n_components=2, 
+        kernel='cosine'
+    ).fit_transform(
+        X=array(list(word_vectors.values()))
+    )
+    for word,(x,y) in zip(word_vectors,coordinates):
+        ax.text(x,y,word) 
+        ax.plot(x,y)
+    show()

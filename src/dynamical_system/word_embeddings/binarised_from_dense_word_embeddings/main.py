@@ -12,6 +12,7 @@ from utils import (
     words_by_feature_index,
     download_file,
     store_most_frequent_words,
+    project_word_vectors_2d
 )
 
 
@@ -31,6 +32,7 @@ vectors_fname = binarise_word_vectors(
 )
 display_binary_vectors(fname=vectors_fname)
 word_vectors = read_binary_vectors_from_file(filename=vectors_fname)
+project_word_vectors_2d(word_vectors=word_vectors)
 word = "rabbit"
 results = k_most_similar_words(
     word_vectors=word_vectors,
