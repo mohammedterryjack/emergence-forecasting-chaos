@@ -90,6 +90,7 @@ def create_wordnet_sdr_vectors(
     if not Path(path_save).exists():
         #1) [x] topics = list of synsets from wordnet (from max depth to prevent them being too many) 
         #get N most common words as contexts
+        #TODO: use wikipedia pages instead
         most_common_synsets = [
             lesk([],word) for word in k_most_common_words(
                 k=300, 
@@ -104,8 +105,10 @@ def create_wordnet_sdr_vectors(
         ]
         sparse_vector_length = len(contexts)
         #2) arrange in order s.t. those with more words in common are closer together (or those with more common branches)
+        #TODO: shortest route problem - travelling salesman optimisation
 
         #3) for each word, for each text it appears in, or has any type of relation with, set the corresponding vector index to 1,    
+        #TODO: go through each word in all contexts and make word vector foe it
         vocabulary = dict()
         words = k_most_common_words(
             k=-1, 
