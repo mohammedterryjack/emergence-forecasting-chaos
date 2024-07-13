@@ -19,7 +19,7 @@ from utils import (
 def create_sdrs(documents:dict[str,str], path_save:str) -> None:
     #TODO: reduce number of contexts
     contexts = [
-        normalise_text(paragraph) for text in documents.values() 
+        paragraph for text in documents.values() 
         for paragraph in split_paragraphs(text)
     ]
     sparse_vector_length = len(contexts)
@@ -45,9 +45,9 @@ if not vectors_fname.exists():
         wikipedia_documents = load(f)
     create_sdrs(path_save=str(vectors_fname),documents=wikipedia_documents)
 word_vectors = read_binary_vectors_from_file(filename=vectors_fname)
-display_binary_vectors(word_vectors=word_vectors)
+#display_binary_vectors(word_vectors=word_vectors)
 #project_word_vectors_2d(word_vectors=word_vectors)
-word = "sex"
+word = "biology"
 results = k_most_similar_words(
     word_vectors=word_vectors,
     word=word,

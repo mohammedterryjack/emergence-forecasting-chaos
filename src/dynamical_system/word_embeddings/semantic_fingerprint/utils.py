@@ -5,10 +5,15 @@ from matplotlib.pyplot import subplots, show
 from matplotlib.ticker import MaxNLocator
 from sklearn.decomposition import KernelPCA
 
+
+def normalise_text(text:str) -> str:
+    TRANSLATION_TABLE = str.maketrans("","",punctuation)
+    return text.lower().translate(TRANSLATION_TABLE) 
+
 def split_paragraphs(text:str) -> list[str]:
     return [
-        paragraph for paragraph in text.split('\n')
-        if not paragraph.isspace()
+        paragraph for paragraph in map(normalise_text,text.split('\n'))
+        if paragraph and not paragraph.isspace()
     ]
 
 def project_word_vectors_2d(word_vectors:dict[str,ndarray]) -> None:    
@@ -47,7 +52,7 @@ def k_most_similar_words(word_vectors:dict[str,ndarray], word:str, k:int) -> lis
 
 def words_by_feature_index(feature_index:int, word_vectors:dict[str,ndarray]) -> list[str]:
     vectors = array(list(word_vectors.values()))
-    indexes = argwhere(vectors[feature_index]).reshape(-1)
+    indexes = argwhere(vectors[:,feature_index]).reshape(-1)
     return array(list(word_vectors))[indexes]
 
 def write_binary_vectors_to_file(filename:str, word_vectors:dict[str,ndarray]) -> None:
@@ -74,7 +79,3 @@ def display_binary_vectors(word_vectors:dict[str,ndarray]) -> None:
     ax.yaxis.set_major_locator(MaxNLocator(integer=True))
     ax.imshow(vocab)
     show()
-
-def normalise_text(text:str) -> str:
-    TRANSLATION_TABLE = str.maketrans("","",punctuation)
-    return text.lower().translate(TRANSLATION_TABLE)
