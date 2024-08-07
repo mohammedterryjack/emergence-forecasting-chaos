@@ -4,7 +4,7 @@ from pathlib import Path
 from numpy import zeros
 
 from utils import (
-    normalise_text,
+    stopwords,
     split_paragraphs,
     read_binary_vectors_from_file,
     write_binary_vectors_to_file,
@@ -17,14 +17,12 @@ from utils import (
 
 
 def create_sdrs(documents:dict[str,str], path_save:str) -> None:
-    #TODO: reduce number of contexts
+    max_paragraphs_per_topics = 3
     contexts = [
         paragraph for text in documents.values() 
-        for paragraph in split_paragraphs(text)
+        for paragraph in split_paragraphs(text)[:max_paragraphs_per_topics]
     ]
     sparse_vector_length = len(contexts)
-    #2) arrange in order s.t. those with more words in common are closer together (or those with more common branches)
-    #TODO: shortest route problem - travelling salesman optimisation
 
     word_vectors = dict()
     for index,text in enumerate(contexts):
@@ -33,10 +31,14 @@ def create_sdrs(documents:dict[str,str], path_save:str) -> None:
                 word_vectors[word] = zeros(sparse_vector_length,dtype=int)
             word_vectors[word][index] = 1
 
-    #TODO: reduce number of words
+    word_vectors_filtered = dict()
+    for word,vector in word_vectors.items():
+        if word not in stopwords and vector.sum() > 1:
+            word_vectors_filtered[word] = vector
+
     write_binary_vectors_to_file(
         filename=path_save,
-        word_vectors=word_vectors
+        word_vectors=word_vectors_filtered
     )
 
 vectors_fname = Path('embeddings/sdr_wordnet_vectors_binary.txt')
@@ -45,8 +47,8 @@ if not vectors_fname.exists():
         wikipedia_documents = load(f)
     create_sdrs(path_save=str(vectors_fname),documents=wikipedia_documents)
 word_vectors = read_binary_vectors_from_file(filename=vectors_fname)
-#display_binary_vectors(word_vectors=word_vectors)
-#project_word_vectors_2d(word_vectors=word_vectors)
+display_binary_vectors(word_vectors=word_vectors)
+project_word_vectors_2d(word_vectors=word_vectors)
 word = "biology"
 results = k_most_similar_words(
     word_vectors=word_vectors,
@@ -54,7 +56,7 @@ results = k_most_similar_words(
     k=5
 )
 print(f"most similar words to '{word}':{results}")
-feature_index = 100
+feature_index = 50
 results = words_by_feature_index(
     feature_index=feature_index,
     word_vectors=word_vectors

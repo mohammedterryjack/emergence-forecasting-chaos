@@ -57,7 +57,7 @@ def k_most_similar_words(word_vectors:dict[str,ndarray], word:str, k:int) -> lis
 
 def words_by_feature_index(feature_index:int, word_vectors:dict[str,ndarray]) -> list[str]:
     vectors = array(list(word_vectors.values()))
-    indexes = argwhere(vectors[feature_index]).reshape(-1)
+    indexes = argwhere(vectors[:,feature_index]).reshape(-1)
     return array(list(word_vectors))[indexes]
 
 def store_most_frequent_words(
