@@ -17,17 +17,32 @@ def split_paragraphs(text:str) -> list[str]:
         if paragraph and not paragraph.isspace()
     ]
 
-def project_word_vectors_2d(word_vectors:dict[str,ndarray]) -> None:    
+def project_word_vectors_2d(word_vectors:dict[str,ndarray]) -> KernelPCA:    
     _, ax = subplots()
-    coordinates = KernelPCA(
+    dimensional_reducer = KernelPCA(
         n_components=2, 
         kernel='cosine'
-    ).fit_transform(
+    )
+    coordinates = dimensional_reducer.fit_transform(
         X=array(list(word_vectors.values()))
     )
     for word,(x,y) in zip(word_vectors,coordinates):
         ax.text(x,y,word) 
         ax.plot(x,y)
+    show()
+    return dimensional_reducer
+
+def display_trajctory_of_sentence(word_vectors:dict[str,ndarray], sentence:str, projector:KernelPCA) -> None:
+    labels,vectors,coordinates = [],[],[]
+    for word in sentence.lower().split():
+        if word in word_vectors:
+            labels.append(word)
+            vectors.append(word_vectors[word])
+    coordinates = projector.transform(vectors)   
+    _, ax = subplots()
+    ax.plot(*zip(*coordinates),'-->')
+    for word,(x,y) in zip(labels,coordinates):
+        ax.text(s=word,x=x,y=y)
     show()
 
 def display_spacetime_of_sentence(word_vectors:dict[str,ndarray], sentence:str) -> None:

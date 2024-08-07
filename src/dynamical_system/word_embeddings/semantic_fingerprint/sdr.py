@@ -12,7 +12,8 @@ from utils import (
     words_by_feature_index,
     display_binary_vectors,
     display_spacetime_of_sentence,
-    project_word_vectors_2d
+    project_word_vectors_2d,
+    display_trajctory_of_sentence
 )
 
 
@@ -47,7 +48,7 @@ if not vectors_fname.exists():
     create_sdrs(path_save=str(vectors_fname),documents=wikipedia_documents)
 word_vectors = read_binary_vectors_from_file(filename=vectors_fname)
 display_binary_vectors(word_vectors=word_vectors)
-project_word_vectors_2d(word_vectors=word_vectors)
+projector = project_word_vectors_2d(word_vectors=word_vectors)
 word = "biology"
 results = k_most_similar_words(
     word_vectors=word_vectors,
@@ -61,8 +62,15 @@ results = words_by_feature_index(
     word_vectors=word_vectors
 )
 print(f"feature {feature_index}:{results}")
+
+sentence = "once upon a time there lived a boy and his sister in a village they went to fetch some water"
 display_spacetime_of_sentence(
     word_vectors=word_vectors,
-    sentence="once upon a time there lived a boy and his sister in a village they went to fetch some water"
+    sentence=sentence
+)
+display_trajctory_of_sentence(
+    word_vectors=word_vectors,
+    sentence=sentence,
+    projector=projector
 )
 #TODO: use sentences from wikipedia entries, paper abstracts, novels, etc
