@@ -16,8 +16,7 @@ from utils import (
 )
 
 
-def create_sdrs(documents:dict[str,str], path_save:str) -> None:
-    max_paragraphs_per_topics = 3
+def create_sdrs(documents:dict[str,str], path_save:str, max_paragraphs_per_topics:int = 3) -> None:
     contexts = [
         paragraph for text in documents.values() 
         for paragraph in split_paragraphs(text)[:max_paragraphs_per_topics]
@@ -66,3 +65,4 @@ display_spacetime_of_sentence(
     word_vectors=word_vectors,
     sentence="once upon a time there lived a boy and his sister in a village they went to fetch some water"
 )
+#TODO: use sentences from wikipedia entries, paper abstracts, novels, etc
