@@ -1,35 +1,46 @@
 
 def create_vectors(
+    n_octaves:int=2,
     n:int=4, 
     common_interval:int=720,
     note_names = ("C","C#","D","D#","E","F","F#","G","G#","A","A#","B"),
     relative_intervals = (720,675,640,600,576,540,512,480,450,432,405,384)
 ) -> dict[str,list[int]]:
-    vectors = []
+    assert n > n_octaves
+    assert len(note_names)==len(relative_intervals)
+    vectors = {}
     vector_size = n*common_interval
-    for i in relative_intervals:
-        vector = [
-            int(not(j%i)) for j in range(1,vector_size+1)
-        ]
-        vectors.append(vector)
+    for octave in range(1,n_octaves+1):
+        for i,name in zip(relative_intervals,note_names):
+            interval = i // octave
+            vector = [int(not(j%interval)) for j in range(1,vector_size+1)]
+            vectors[f"{name}{octave}"] = vector
+    return vectors
 
-    return dict(zip(note_names,vectors))
 
-from matplotlib.pyplot import imshow, show 
+
+
+from matplotlib.pyplot import imshow, show, yticks
+from numpy import array 
 
 music_vectors = create_vectors(
-    common_interval=72,
-    relative_intervals = (72,67,64,60,57,54,51,48,45,43,40,38)    
+    common_interval=144,
+    relative_intervals = (144,135,128,120,115,108,102,96,90,86,81,77)    
 )
-imshow(list(music_vectors.values()), 'gray')
+imshow(list(music_vectors.values()), cmap='gray', aspect='auto')
+yticks(array(list(range(len(music_vectors)))), list(music_vectors.keys()))
+show()
+
+
+imshow([music_vectors['A1'],music_vectors['A2']])
 show()
 
 spacetime = []
 happy_birthday = [
-    "G","G","A","G","C","B",
-    "G","G","A","G","D","C",
-    "G","G","E","C","B","A",
-    "F","F","E","C","D","C"
+    "G1","G1","A1","G1","C2","B1",
+    "G1","G1","A1","G1","D2","C2",
+    "G1","G1","E2","C2","B1","A1",
+    "F1","F1","E2","C2","D2","C2"
 ]
 for note in happy_birthday:
     spacetime.append(music_vectors[note])
