@@ -22,9 +22,7 @@ def matrix_factorisation_sgd(
     _,num_factors = factor_matrix_a.shape 
 
     errors = []
-    #K = num_factors
-    #P = factor_matrix_a
-    factor_matrix_b = rand(num_factors, num_cols) #Q
+    factor_matrix_b = rand(num_factors, num_cols) 
 
     for iteration in range(n_iterations):
         total_error = 0.0
@@ -39,6 +37,8 @@ def matrix_factorisation_sgd(
                     e_ui * factor_matrix_a[i, :] - factor_matrix_b[:, j]
                 )
                 total_error += abs(e_ui)
+        if verbose:
+            print(f"iteration {iteration}: loss={total_error}")
         errors.append(total_error)
     if verbose:
         plot(errors)
