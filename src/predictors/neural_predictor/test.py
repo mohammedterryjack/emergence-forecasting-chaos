@@ -9,15 +9,17 @@ from visualisation_utils import plot_latent_space, plot_label_clusters
 fashion_mnist_data = concatenate([x_train, x_test], axis=0)
 fashion_mnist_data = expand_dims(fashion_mnist_data, -1).astype("float32") / 255
  
-vae = VAE()
-vae.compile(optimizer=Adam())
-#vae.fit(fashion_mnist_data, epochs=10, batch_size=128)
-vae.fit(fashion_mnist_data, epochs=1, batch_size=128)
+model = VAE(input_shape=(28, 28, 1), hidden_latent_dimension=2)
+print(model.encoder.summary())
+print(model.decoder.summary())
 
-plot_latent_space(predictor=lambda sample:vae.decoder.predict(sample, verbose=0))
+model.compile(optimizer=Adam())
+model.fit(fashion_mnist_data, epochs=1, batch_size=128)
+
+plot_latent_space(predictor=lambda sample:model.decoder.predict(sample, verbose=0))
  
 x_train = expand_dims(x_train, -1).astype("float32") / 255
-h_embedded, _, _ = vae.encoder.predict(x_train)
+h_embedded, _, _ = model.encoder.predict(x_train)
 
 plot_label_clusters(
     inputs_embedded=h_embedded,

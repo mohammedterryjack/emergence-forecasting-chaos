@@ -8,42 +8,41 @@ from keras.losses import binary_crossentropy
 
 
 class Sampling(Layer):
-    def call(self, mean, log_var):
+    def call(self, mean:Dense, log_var:Dense):
         """sample the hidden vector encoding of an input"""
         batch = shape(mean)[0]
         dimension = shape(mean)[1]
+        print(batch, dimension)
         epsilon = normal(shape=(batch, dimension))
         return mean + exp(0.5 * log_var) * epsilon
 
-#TODO: continue refactoring from here...
 class VAE(Model):
-    def __init__(self) -> None:
+    def __init__(
+        self, 
+        input_shape:tuple[int,int,int], 
+        hidden_latent_dimension:int
+    ) -> None:
         super().__init__()
 
-        latent_dim = 2 
-        encoder_inputs = Input(shape=(28, 28, 1))
+    #TODO: continue refactoring from here...(make input 1D vector, make output 1D vector)
+        encoder_inputs = Input(shape=input_shape)
         x = Conv2D(64, 3, activation="relu", strides=2, padding="same")(encoder_inputs)
         x = Conv2D(128, 3, activation="relu", strides=2, padding="same")(x)
         x = Flatten()(x)
         x = Dense(16, activation="relu")(x)
-        mean = Dense(latent_dim, name="mean")(x)
-        log_var = Dense(latent_dim, name="log_var")(x)
+        mean = Dense(hidden_latent_dimension, name="mean")(x)
+        log_var = Dense(hidden_latent_dimension, name="log_var")(x)
         z = Sampling()(mean, log_var)
-        encoder = Model(encoder_inputs, [mean, log_var, z], name="encoder")
-        print(encoder.summary())
-
-
-        latent_inputs = Input(shape=(latent_dim,))
+       
+        latent_inputs = Input(shape=(hidden_latent_dimension,))
         x = Dense(7 * 7 * 64, activation="relu")(latent_inputs)
         x = Reshape((7, 7, 64))(x)
         x = Conv2DTranspose(128, 3, activation="relu", strides=2, padding="same")(x)
         x = Conv2DTranspose(64, 3, activation="relu", strides=2, padding="same")(x)
         decoder_outputs = Conv2DTranspose(1, 3, activation="sigmoid", padding="same")(x)
-        decoder = Model(latent_inputs, decoder_outputs, name="decoder")
-        print(decoder.summary())
 
-        self.encoder = encoder
-        self.decoder = decoder
+        self.encoder = Model(encoder_inputs, [mean, log_var, z], name="encoder")
+        self.decoder = Model(latent_inputs, decoder_outputs, name="decoder")
         self.total_loss_tracker = Mean(name="total_loss")
         self.reconstruction_loss_tracker = Mean(
             name="reconstruction_loss"
