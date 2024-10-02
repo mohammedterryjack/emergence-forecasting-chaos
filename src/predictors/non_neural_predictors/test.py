@@ -1,4 +1,5 @@
 from numpy import array, argmax
+from matplotlib.pyplot import imshow, show 
 
 from matrix_factorisation import matrix_factorisation_sgd, matrix_factorisation_pseudo_inverse
 
@@ -22,7 +23,6 @@ embeddings_next = matrix_factorisation_pseudo_inverse(
 )
 print(embeddings_next)
 
-from matplotlib.pyplot import imshow, show 
 imshow(matrix_mapping_current_id_to_next_id)
 show() 
 

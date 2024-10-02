@@ -7,44 +7,41 @@ from keras.metrics import Mean
 from keras.losses import binary_crossentropy
 
 
-
 class Sampling(Layer):
-    """Uses (mean, log_var) to sample z, the vector encoding a digit."""
- 
-    def call(self, inputs):
-        mean, log_var = inputs
+    def call(self, mean, log_var):
+        """sample the hidden vector encoding of an input"""
         batch = shape(mean)[0]
-        dim = shape(mean)[1]
-        epsilon = normal(shape=(batch, dim))
+        dimension = shape(mean)[1]
+        epsilon = normal(shape=(batch, dimension))
         return mean + exp(0.5 * log_var) * epsilon
 
-latent_dim = 2
- 
-encoder_inputs = Input(shape=(28, 28, 1))
-x = Conv2D(64, 3, activation="relu", strides=2, padding="same")(encoder_inputs)
-x = Conv2D(128, 3, activation="relu", strides=2, padding="same")(x)
-x = Flatten()(x)
-x = Dense(16, activation="relu")(x)
-mean = Dense(latent_dim, name="mean")(x)
-log_var = Dense(latent_dim, name="log_var")(x)
-z = Sampling()([mean, log_var])
-encoder = Model(encoder_inputs, [mean, log_var, z], name="encoder")
-print(encoder.summary())
-
-
-latent_inputs = Input(shape=(latent_dim,))
-x = Dense(7 * 7 * 64, activation="relu")(latent_inputs)
-x = Reshape((7, 7, 64))(x)
-x = Conv2DTranspose(128, 3, activation="relu", strides=2, padding="same")(x)
-x = Conv2DTranspose(64, 3, activation="relu", strides=2, padding="same")(x)
-decoder_outputs = Conv2DTranspose(1, 3, activation="sigmoid", padding="same")(x)
-decoder = Model(latent_inputs, decoder_outputs, name="decoder")
-print(decoder.summary())
-
-
+#TODO: continue refactoring from here...
 class VAE(Model):
-    def __init__(self, encoder, decoder, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self) -> None:
+        super().__init__()
+
+        latent_dim = 2 
+        encoder_inputs = Input(shape=(28, 28, 1))
+        x = Conv2D(64, 3, activation="relu", strides=2, padding="same")(encoder_inputs)
+        x = Conv2D(128, 3, activation="relu", strides=2, padding="same")(x)
+        x = Flatten()(x)
+        x = Dense(16, activation="relu")(x)
+        mean = Dense(latent_dim, name="mean")(x)
+        log_var = Dense(latent_dim, name="log_var")(x)
+        z = Sampling()(mean, log_var)
+        encoder = Model(encoder_inputs, [mean, log_var, z], name="encoder")
+        print(encoder.summary())
+
+
+        latent_inputs = Input(shape=(latent_dim,))
+        x = Dense(7 * 7 * 64, activation="relu")(latent_inputs)
+        x = Reshape((7, 7, 64))(x)
+        x = Conv2DTranspose(128, 3, activation="relu", strides=2, padding="same")(x)
+        x = Conv2DTranspose(64, 3, activation="relu", strides=2, padding="same")(x)
+        decoder_outputs = Conv2DTranspose(1, 3, activation="sigmoid", padding="same")(x)
+        decoder = Model(latent_inputs, decoder_outputs, name="decoder")
+        print(decoder.summary())
+
         self.encoder = encoder
         self.decoder = decoder
         self.total_loss_tracker = Mean(name="total_loss")
