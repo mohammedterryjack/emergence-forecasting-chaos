@@ -1,5 +1,4 @@
-
-from numpy import ndarray, array, argmax, isnan
+from numpy import ndarray, isnan
 from numpy.random import rand
 from numpy.linalg import pinv 
 from matplotlib.pyplot import plot, show 
@@ -44,38 +43,3 @@ def matrix_factorisation_sgd(
         plot(errors)
         show()
     return factor_matrix_b
-
-
-matrix_mapping_current_id_to_next_id = array(
-    [
-        [1, 0, 0, 0], 
-        [0, 1, 0, 0], 
-        [0, 0, 1, 0], 
-    ]
-)
-embeddings_current = array([
-    [0,1,1,1,1,0,0,1],
-    [1,0,0,1,0,1,1,0],
-    [0,0,0,0,1,1,0,1]
-])
-
-embeddings_next = matrix_factorisation_sgd(
-#embeddings_next = matrix_factorisation_pseudo_inverse(
-    sparse_matrix_to_factorise=matrix_mapping_current_id_to_next_id,
-    factor_matrix_a=embeddings_current,
-)
-print(embeddings_next)
-
-from matplotlib.pyplot import imshow, show 
-imshow(matrix_mapping_current_id_to_next_id)
-show() 
-
-imshow(embeddings_current @ embeddings_next)
-show()
-
-
-x_new_embedded = [0,1,0,1,0,1,0,1]
-y_new_embedding = x_new_embedded @ embeddings_next
-print(y_new_embedding)
-y_new = argmax(y_new_embedding)
-print(y_new)
