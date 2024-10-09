@@ -1,28 +1,33 @@
-from numpy import concatenate, expand_dims
-from keras.datasets import fashion_mnist
+from torch import randint
 
-from vae import VAE
-from visualisation_utils import plot_latent_space, plot_label_clusters
-
-model = VAE(input_shape=(28, 28, 1), hidden_latent_dimension=2)
+from transformer import Transformer
+from train import train_model
 
 
-(x_train, y_train), (x_test, _) = fashion_mnist.load_data()
+src_vocab_size = 5000
+tgt_vocab_size = 5000
+max_seq_length = 100
+batch_size = 1 #64
+n_epochs = 10
 
-fashion_mnist_data = expand_dims(concatenate([x_train, x_test], axis=0), -1).astype("float32") / 255
-model.fit(fashion_mnist_data, epochs=1, batch_size=128)
-
-plot_latent_space(predictor=lambda sample:model.decoder.predict(sample, verbose=0))
- 
-x_train_ = expand_dims(x_train, -1).astype("float32") / 255
-#print(x_train.shape) #(60000, 28, 28)
-#print(x_train_.shape) #(60000, 28, 28, 1)
-h_embedded, _, _ = model.encoder.predict(x_train_)
-
-plot_label_clusters(
-    inputs_embedded=h_embedded,
-    outputs=y_train, 
-    output_labels=[
-        "T-shirt / top","Trouser", "Pullover","Dress","Coat","Sandal","Shirt", "Sneaker","Bag","Ankle boot"
-    ]
+model = Transformer(
+    src_vocab_size=src_vocab_size, 
+    tgt_vocab_size=tgt_vocab_size, 
+    max_seq_length=max_seq_length, 
 )
+
+source_data = randint(1, src_vocab_size, (batch_size, max_seq_length))  
+target_data = randint(1, tgt_vocab_size, (batch_size, max_seq_length))  
+
+# train_model(
+#     n_epochs=n_epochs,
+#     model=model,
+#     x_train=source_data,
+#     y_train=target_data,
+#     y_vocab_size=tgt_vocab_size
+# )
+
+output = model(source_data, target_data[:, :-1])
+#predicts vectors over size of vocab - take argmax to select predicted ids
+ax = output.argmax(-1)
+bx = target_data[:, :-1]

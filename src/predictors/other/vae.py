@@ -1,8 +1,8 @@
 
-from tensorflow import shape, reduce_sum, GradientTape, reduce_mean, square, exp, Tensor
+from tensorflow import shape, reduce_sum, GradientTape, reduce_mean, square, exp, Tensor, print, round
 from tensorflow.random import normal
 from keras import Input, Model
-from keras.layers import Layer, Conv2D, Flatten, Dense, Reshape, Conv2DTranspose
+from keras.layers import Layer, Flatten, Dense
 from keras.metrics import Mean
 from keras.losses import binary_crossentropy
 from keras.optimizers import Adam
@@ -13,7 +13,6 @@ class Sampling(Layer):
         """sample the hidden vector encoding of an input"""
         batch = shape(mean)[0]
         dimension = shape(mean)[1]
-        print(batch, dimension)
         epsilon = normal(shape=(batch, dimension))
         return mean + exp(0.5 * log_var) * epsilon
 
@@ -47,13 +46,11 @@ class VAE(Model):
         ]
 
     def train_step(self, train_data) -> dict[str,float]:
+        x, y = train_data
         with GradientTape() as tape:
-            mean,log_var, hidden_latent_layer = self.encoder(train_data)
-            train_data_reconstructed = self.decoder(hidden_latent_layer)
-            reconstruction_loss = self.calculate_reconstruction_loss(
-                y=train_data,
-                y_hat=train_data_reconstructed
-            ) 
+            mean,log_var, hidden_latent_layer = self.encoder(x)
+            y_reconstructed = self.decoder(hidden_latent_layer)
+            reconstruction_loss = reduce_mean(binary_crossentropy(y, y_reconstructed)) 
             kl_loss = self.calculate_kl_loss(
                 mean=mean,
                 log_var=log_var
@@ -74,34 +71,24 @@ class VAE(Model):
     @staticmethod
     def create_decoder(hidden_latent_dimension:int) -> Model:
         latent_inputs = Input(shape=(hidden_latent_dimension,))
-        layer1 = Dense(7 * 7 * 64, activation="relu")(latent_inputs)
-        layer2 = Reshape((7, 7, 64))(layer1)
-        layer3 = Conv2DTranspose(128, 3, activation="relu", strides=2, padding="same")(layer2)
-        layer4 = Conv2DTranspose(64, 3, activation="relu", strides=2, padding="same")(layer3)
-        decoder_outputs = Conv2DTranspose(1, 3, activation="sigmoid", padding="same")(layer4)
+        layer1 = Dense(256, activation="relu")(latent_inputs)
+        layer2 = Dense(128, activation="relu")(layer1)
+        layer3 = Dense(64, activation="relu")(layer2)
+        decoder_outputs = Dense(9, activation="sigmoid")(layer3)
         return Model(latent_inputs, decoder_outputs, name="decoder")
 
     @staticmethod
     def create_encoder(input_shape:tuple[int,int,int], hidden_latent_dimension:int) -> Model:
-        #TODO: (make input 1D vector, make output 1D vector)
         encoder_inputs = Input(shape=input_shape) 
-        layer1 = Conv2D(64, 3, activation="relu", strides=2, padding="same")(encoder_inputs)
-        layer2 = Conv2D(128, 3, activation="relu", strides=2, padding="same")(layer1)
-        layer3 = Flatten()(layer2)
-        layer4 = Dense(16, activation="relu")(layer3)
+        layer1 = Flatten()(encoder_inputs)
+        layer2 = Dense(64, activation="relu")(layer1)
+        layer3 = Dense(128, activation="relu")(layer2)
+        layer4 = Dense(256, activation="relu")(layer3)
         mean = Dense(hidden_latent_dimension, name="mean")(layer4)
         log_var = Dense(hidden_latent_dimension, name="log_var")(layer4)
         layer_latent_hidden = Sampling()(mean=mean, log_var=log_var)
         return Model(encoder_inputs, [mean, log_var, layer_latent_hidden], name="encoder")
 
-    @staticmethod
-    def calculate_reconstruction_loss(y:Tensor, y_hat:Tensor) -> Tensor:
-        return reduce_mean(
-            reduce_sum(
-                binary_crossentropy(y, y_hat),
-                axis=(1, 2),
-            )
-        )        
 
     @staticmethod
     def calculate_kl_loss(mean:Dense, log_var:Dense) -> Tensor:
