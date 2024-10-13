@@ -1,7 +1,7 @@
 #https://towardsdatascience.com/build-your-own-transformer-from-scratch-using-pytorch-84c850470dcb
 
-from torch import matmul, softmax, zeros, arange, exp, float, sin, cos, triu, ones
-import math
+from torch import matmul, softmax, zeros, arange, exp, float, sin, cos, triu, ones, Tensor, tensor
+from math import sqrt, log
 
 from torch.nn import Linear, Module, ReLU, LayerNorm, Dropout, Embedding, ModuleList
 
@@ -20,7 +20,7 @@ class MultiHeadAttention(Module):
         self.W_o = Linear(d_model, d_model)
         
     def scaled_dot_product_attention(self, Q, K, V, mask=None):
-        attn_scores = matmul(Q, K.transpose(-2, -1)) / math.sqrt(self.d_k)
+        attn_scores = matmul(Q, K.transpose(-2, -1)) / sqrt(self.d_k)
         if mask is not None:
             attn_scores = attn_scores.masked_fill(mask == 0, -1e9)
         attn_probs = softmax(attn_scores, dim=-1)
@@ -60,7 +60,7 @@ class PositionalEncoding(Module):
         
         pe = zeros(max_seq_length, d_model)
         position = arange(0, max_seq_length, dtype=float).unsqueeze(1)
-        div_term = exp(arange(0, d_model, 2).float() * -(math.log(10000.0) / d_model))
+        div_term = exp(arange(0, d_model, 2).float() * -(log(10000.0) / d_model))
         
         pe[:, 0::2] = sin(position * div_term)
         pe[:, 1::2] = cos(position * div_term)
@@ -106,9 +106,31 @@ class DecoderLayer(Module):
         x = self.norm3(x + self.dropout(ff_output))
         return x
 
+
+class InputLayer(Module):
+    def __init__(self, src_vocab_size:int, d_model:int, encoder:callable) -> None:
+        super(InputLayer, self).__init__()
+        self.src_vocab_size = src_vocab_size
+        self.d_model = d_model
+        self.projection_layer = Linear(self.src_vocab_size, self.d_model, bias=False)
+        self.index_encoder = encoder
+
+    def forward(self, input:Tensor) -> Tensor:
+        batch_size, seq_length = input.size()
+        input_encoded = zeros((batch_size, seq_length, self.src_vocab_size))
+        for i in range(batch_size):
+            for j in range(seq_length):
+                index = input[i][j]
+                input_encoded[i][j] = tensor(
+                    self.index_encoder(index=index, array_size=self.src_vocab_size)
+                )
+        return self.projection_layer(input_encoded)
+
 class Transformer(Module):
     def __init__(
         self, 
+        src_encoder:callable,
+        tgt_decoder:callable,
         src_vocab_size:int, 
         tgt_vocab_size:int, 
         max_seq_length:int, 
@@ -119,7 +141,8 @@ class Transformer(Module):
         dropout:int=0.1
     ) -> None:
         super(Transformer, self).__init__()
-        self.encoder_embedding = Embedding(src_vocab_size, d_model)
+        #self.encoder_embedding = Embedding(src_vocab_size, d_model)
+        self.encoder_embedding = InputLayer(src_vocab_size=src_vocab_size, d_model=d_model, encoder=src_encoder)
         self.decoder_embedding = Embedding(tgt_vocab_size, d_model)
         self.positional_encoding = PositionalEncoding(d_model, max_seq_length)
 
@@ -138,7 +161,7 @@ class Transformer(Module):
         return src_mask, tgt_mask
 
     def forward(self, src, tgt):
-        src_mask, tgt_mask = self.generate_mask(src, tgt)
+        src_mask, tgt_mask = self.generate_mask(src, tgt)  
         src_embedded = self.dropout(self.positional_encoding(self.encoder_embedding(src)))
         tgt_embedded = self.dropout(self.positional_encoding(self.decoder_embedding(tgt)))
 
