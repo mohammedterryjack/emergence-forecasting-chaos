@@ -130,7 +130,6 @@ class Transformer(Module):
     def __init__(
         self, 
         src_encoder:callable,
-        tgt_decoder:callable,
         src_vocab_size:int, 
         tgt_vocab_size:int, 
         max_seq_length:int, 
