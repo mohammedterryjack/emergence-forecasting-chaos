@@ -1,8 +1,9 @@
 #https://towardsdatascience.com/build-your-own-transformer-from-scratch-using-pytorch-84c850470dcb
 
-from torch import matmul, softmax, zeros, arange, exp, float, sin, cos, triu, ones, Tensor, tensor
 from math import sqrt, log
 
+from numpy import ndarray
+from torch import matmul, softmax, zeros, arange, exp, float, sin, cos, triu, ones, Tensor, tensor
 from torch.nn import Linear, Module, ReLU, LayerNorm, Dropout, Embedding, ModuleList
 
 class MultiHeadAttention(Module):
@@ -108,23 +109,27 @@ class DecoderLayer(Module):
 
 
 class InputLayer(Module):
-    def __init__(self, src_vocab_size:int, d_model:int, encoder:callable) -> None:
+    def __init__(self, vocab_size:int, d_model:int, encoder:callable) -> None:
         super(InputLayer, self).__init__()
-        self.src_vocab_size = src_vocab_size
+        self.vocab_size = vocab_size
         self.d_model = d_model
-        self.projection_layer = Linear(self.src_vocab_size, self.d_model, bias=False)
+        self.projection_layer = Linear(self.vocab_size, self.d_model, bias=False)
         self.index_encoder = encoder
 
     def forward(self, input:Tensor) -> Tensor:
+        return self.projection_layer(self._encode(input=input))
+
+    def _encode(self, input:Tensor) -> Tensor:
         batch_size, seq_length = input.size()
-        input_encoded = zeros((batch_size, seq_length, self.src_vocab_size))
+        input_encoded = zeros((batch_size, seq_length, self.vocab_size))
         for i in range(batch_size):
             for j in range(seq_length):
                 index = input[i][j]
                 input_encoded[i][j] = tensor(
-                    self.index_encoder(index=index, array_size=self.src_vocab_size)
+                    self.index_encoder(index=index, array_size=self.vocab_size)
                 )
-        return self.projection_layer(input_encoded)
+        return input_encoded
+
 
 class Transformer(Module):
     def __init__(
@@ -141,8 +146,9 @@ class Transformer(Module):
     ) -> None:
         super(Transformer, self).__init__()
         #self.encoder_embedding = Embedding(src_vocab_size, d_model)
-        self.encoder_embedding = InputLayer(src_vocab_size=src_vocab_size, d_model=d_model, encoder=src_encoder)
-        self.decoder_embedding = Embedding(tgt_vocab_size, d_model)
+        #self.decoder_embedding = Embedding(tgt_vocab_size, d_model)
+        self.encoder_embedding = InputLayer(vocab_size=src_vocab_size, d_model=d_model, encoder=src_encoder)
+        self.decoder_embedding = InputLayer(vocab_size=tgt_vocab_size, d_model=d_model, encoder=src_encoder)
         self.positional_encoding = PositionalEncoding(d_model, max_seq_length)
 
         self.encoder_layers = ModuleList([EncoderLayer(d_model, num_heads, d_ff, dropout) for _ in range(num_layers)])
@@ -160,7 +166,7 @@ class Transformer(Module):
         return src_mask, tgt_mask
 
     def forward(self, src, tgt):
-        src_mask, tgt_mask = self.generate_mask(src, tgt)  
+        src_mask, tgt_mask = self.generate_mask(src, tgt) 
         src_embedded = self.dropout(self.positional_encoding(self.encoder_embedding(src)))
         tgt_embedded = self.dropout(self.positional_encoding(self.decoder_embedding(tgt)))
 
@@ -175,3 +181,13 @@ class Transformer(Module):
         output = self.fc(dec_output)
         return output
     
+    def predict_next(self, sequence:ndarray, return_distribution:bool=False) -> ndarray:
+        """
+        Given a sequence of integers as a numpy array
+        the model will predict the next in the sequece
+        If return_distribution is False
+        the output is given as an integer like the input
+        otherwise the raw distribution over the target vocab is returned"""
+        seq = tensor(sequence)
+        predictions = self(seq[:,:-1],seq[:,-1:]).detach().numpy()
+        return predictions if return_distribution else predictions.argmax(-1)
