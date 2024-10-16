@@ -1,8 +1,8 @@
 from numpy import ndarray, zeros
 from numpy.random import randint 
 
-from transformer import Transformer
-from train import train_model_with_target_embeddings
+from predictors.neural_predictor.transformer import Transformer
+from predictors.neural_predictor.train import train_model_with_target_embeddings
 
 
 def toy_encoder(index:int, array_size:int) -> ndarray:

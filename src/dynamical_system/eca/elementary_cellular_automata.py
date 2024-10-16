@@ -6,6 +6,16 @@ from json import dumps
 
 from numpy import ndarray, roll, stack, apply_along_axis, zeros, binary_repr
 from matplotlib.pyplot import imshow, show 
+from pydantic import BaseModel
+
+class ECAMetadata(BaseModel):
+    cell_states:int
+    lattice_width:int
+    lattice_configuration_space:int
+    time_steps:int
+    local_transition_rule:int
+    local_transition_neighbourhood_radius:int
+    lattice_evolution:list[int]
 
 class ElementaryCellularAutomata(Sequence):
     def __init__(
@@ -44,12 +54,17 @@ class ElementaryCellularAutomata(Sequence):
             neighbourhood_radius=neighbourhood_radius,
             local_transition_rule=local_transition_rule      
         )
-        self.info = lambda : dict(
-            w=lattice_width,
-            T=time_steps,
-            IC=initial_state,
-            r=neighbourhood_radius,
-            rule=transition_rule_number
+        self.info = lambda : ECAMetadata(
+            cell_states=2,
+            lattice_width=lattice_width,
+            lattice_configuration_space=max_state,
+            time_steps=time_steps,
+            local_transition_rule=transition_rule_number,
+            local_transition_neighbourhood_radius=neighbourhood_radius,
+            lattice_evolution=list(map(
+                self.get_state_number_from_binary_lattice,
+                self
+            ))
         )
         self.repr_zero = representation_zero
         self.repr_one = representation_one
@@ -61,7 +76,7 @@ class ElementaryCellularAutomata(Sequence):
         return self.evolution[i]
     
     def __repr__(self) -> str:
-        return dumps(self.info(),indent=2) + '\n' + '\n'.join(
+        return dumps(self.info().dict(),indent=2) + '\n' + '\n'.join(
             map(
                 lambda configuration:self.stringify_configuration(
                     configuration=configuration,
@@ -101,6 +116,10 @@ class ElementaryCellularAutomata(Sequence):
     @staticmethod
     def create_binary_lattice_from_number(state_number:int, lattice_width:int) -> list[int]:
         return list(map(int,binary_repr(state_number,lattice_width)))
+
+    @staticmethod
+    def get_state_number_from_binary_lattice(binary_lattice:list[int]) -> int:
+        return int(''.join(str(value) for value in binary_lattice),2)
 
     @staticmethod
     def create_binary_rule_from_number(rule_number:int, local_neighbourhood_size:int) -> callable:

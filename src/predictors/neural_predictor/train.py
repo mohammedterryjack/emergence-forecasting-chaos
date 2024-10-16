@@ -3,7 +3,7 @@ from torch import Tensor, tensor
 from torch.nn import BCEWithLogitsLoss, CrossEntropyLoss
 from torch.optim import Adam
 
-from transformer import Transformer
+from predictors.neural_predictor.transformer import Transformer
 
 def train_model_with_target_indices(n_epochs:int, model:Transformer, x_train:ndarray, y_train:ndarray) -> None:
     x_train = tensor(x_train)
