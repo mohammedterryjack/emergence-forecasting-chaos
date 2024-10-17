@@ -23,12 +23,11 @@ def generate_dataset(
     return array(before),array(after)
 
 
-#def encoder(index:int, array_size:int) -> ndarray:
-#    onehot = zeros(array_size)
-#    if index < array_size:
-#        onehot[index] = 1
-#    return onehot
-
+def eca_encoder(index:int, array_size:int) -> ndarray:
+    return array(ElementaryCellularAutomata.create_binary_lattice_from_number(
+        state_number=index,
+        lattice_width=array_size
+    ))
 
 
 src_vocab_size = 5000
@@ -43,20 +42,20 @@ source_data, target_data = generate_dataset(
     max_sequence_length=max_seq_length
 ) 
 
-# model = Transformer(
-#     src_vocab_size=src_vocab_size, 
-#     tgt_vocab_size=tgt_vocab_size, 
-#     max_seq_length=max_seq_length, 
-#     src_encoder=encoder,
-# )
+model = Transformer(
+    src_vocab_size=src_vocab_size, 
+    tgt_vocab_size=tgt_vocab_size, 
+    max_seq_length=max_seq_length, 
+    src_encoder=eca_encoder,
+)
 
-# train_model_with_target_embeddings(
-#     n_epochs=n_epochs,
-#     model=model,
-#     x_train=source_data,
-#     y_train=target_data,
-# )
+train_model_with_target_embeddings(
+    n_epochs=n_epochs,
+    model=model,
+    x_train=source_data,
+    y_train=target_data,
+)
 
-# print(source_data.shape, target_data.shape)
-# predicted_next = model.predict_next(sequence=source_data, return_distribution=True)
-# print(predicted_next)
+print(source_data.shape, target_data.shape)
+predicted_next = model.predict_next(sequence=source_data, return_distribution=True)
+print(predicted_next)
