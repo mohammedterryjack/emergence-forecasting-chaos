@@ -125,37 +125,26 @@ target_data_encoded = [
 
 from matplotlib.pyplot import subplots, show, tight_layout
 num_rows = batch_size
-num_cols = 3
+num_cols = 4
 
 for b in range(batch_size):
-    _, axes = subplots(num_rows, num_cols, figsize=(10, 5 * num_rows))
+    _, axes = subplots(1, num_cols, figsize=(10, 5 * num_rows))
 
-    axes[0, 0].imshow(source_data_encoded[b], cmap='gray')
-    axes[0, 0].set_title(f'Source {b+1}')
-    axes[0, 0].axis('off') 
+    axes[0].imshow(source_data_encoded[b], cmap='gray')
+    axes[0].set_title(f'Source {b+1}')
+    axes[0].axis('off') 
 
-    axes[0, 1].imshow(source_data_encoded[b], cmap='gray')
-    axes[0, 1].set_title(f'Source {b+1}')
-    axes[0, 1].axis('off') 
+    axes[1].imshow(target_data_encoded[b], cmap='gray')
+    axes[1].set_title(f'Target {b+1}')
+    axes[1].axis('off') 
 
-    axes[0, 2].imshow(source_data_encoded[b], cmap='gray')
-    axes[0, 2].set_title(f'Source {b+1}')
-    axes[0, 2].axis('off') 
+    axes[2].imshow(predicted[b] > binary_threshold, cmap='gray')
+    axes[2].set_title(f'Predicted (Binarised) {b+1}')
+    axes[2].axis('off') 
 
-
-    axes[1, 0].imshow(target_data_encoded[b], cmap='gray')
-    axes[1, 0].set_title(f'Target {b+1}')
-    axes[1, 0].axis('off') 
-
-    axes[1, 1].imshow(predicted[b], cmap='gray')
-    axes[1, 1].set_title(f'Predicted {b+1}')
-    axes[1, 1].axis('off') 
-
-    axes[1, 2].imshow(predicted[b] > 0.5, cmap='gray')
-    axes[1, 2].set_title(f'Predicted (Binarised) {b+1}')
-    axes[1, 2].axis('off') 
+    axes[3].imshow(predicted[b], cmap='gray')
+    axes[3].set_title(f'Predicted (Real) {b+1}')
+    axes[3].axis('off') 
 
     tight_layout()
     show()
-
-#TODO: visualise predictions against targets for spacetime diagrams
