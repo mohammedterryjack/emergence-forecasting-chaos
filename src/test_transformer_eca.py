@@ -75,8 +75,8 @@ def predict_n(
 
     return predictions
 
-src_vocab_size = tgt_vocab_size = 17
-max_seq_length = 100
+src_vocab_size = tgt_vocab_size = 50
+max_seq_length = 50
 batch_size = 2
 n_epochs = 100
 binary_threshold = 0.5
@@ -148,3 +148,9 @@ for b in range(batch_size):
 
     tight_layout()
     show()
+
+
+#TODO:
+# - plot forecast like examople_forecast.png
+# - try predicting by adding additional / emergent features
+# - eca test with non-neural model
