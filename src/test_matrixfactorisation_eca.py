@@ -16,7 +16,12 @@ def construct_sparse_correlation_matrix(indexes:list[int], vector_size:int) -> n
     return sparse_matrix
 
 def construct_memory_efficient_sparse_correlation_matrix(indexes:list[int]) -> tuple[ndarray, list[int]]:
-    """only creates sparse matrix contianing indices visited in the trajectory - not all possible indices in the configuration space"""
+    """only creates sparse matrix contianing indices visited in the trajectory 
+    - not all possible indices in the configuration space
+    which means only the configurations seen can ever be predicted
+    this is similar to a lookup table using the vectors instead of the indexes
+    which means we can combine the emergent features (as vectors) into the lookup
+    """
     original_to_mini_index_mapping = list(set(indexes))
     original_to_mini_index_mapping.sort()
     new_indexes = [original_to_mini_index_mapping.index(i) for i in indexes]
