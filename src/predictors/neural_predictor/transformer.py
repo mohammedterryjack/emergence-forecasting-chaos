@@ -64,6 +64,11 @@ class PositionalEncoding(Module):
         position = arange(0, max_seq_length, dtype=float).unsqueeze(1)
         div_term = exp(arange(0, d_model, 2).float() * -(log(10000.0) / d_model))
         
+        #print(pe.shape) #torch.Size([50, 512])
+        #print(position.shape) #torch.Size([50, 1])
+        #print(div_term.shape) #torch.Size([256])
+        #print(sin(position * div_term).shape) #torch.Size([50, 256])
+
         pe[:, 0::2] = sin(position * div_term)
         pe[:, 1::2] = cos(position * div_term)
         
