@@ -1,4 +1,4 @@
-from numpy import ndarray, isnan
+from numpy import ndarray, isnan, zeros
 from numpy.random import rand
 from numpy.linalg import pinv 
 from matplotlib.pyplot import plot, show 
@@ -43,3 +43,30 @@ def matrix_factorisation_sgd(
         plot(errors)
         show()
     return factor_matrix_b
+
+def construct_sparse_correlation_matrix(indexes:list[int], vector_size:int) -> ndarray:
+    sparse_matrix = zeros((vector_size, vector_size))
+    current_indices = indexes[:-1]
+    next_indices = indexes[1:]
+    sparse_matrix[current_indices, next_indices] = 1
+    return sparse_matrix
+
+def construct_memory_efficient_sparse_correlation_matrix(indexes:list[int]) -> tuple[ndarray, list[int]]:
+    """only creates sparse matrix contianing indices visited in the trajectory 
+    - not all possible indices in the configuration space
+    which means only the configurations seen can ever be predicted
+    this is similar to a lookup table using the vectors instead of the indexes
+    which means we can combine the emergent features (as vectors) into the lookup
+    """
+    original_to_mini_index_mapping = list(set(indexes))
+    original_to_mini_index_mapping.sort()
+    new_indexes = [original_to_mini_index_mapping.index(i) for i in indexes]
+
+    current_indices = new_indexes[:-1]
+    next_indices = new_indexes[1:]
+
+    vector_size = len(original_to_mini_index_mapping)
+    sparse_matrix = zeros((vector_size, vector_size))
+    sparse_matrix[current_indices, next_indices] = 1
+
+    return sparse_matrix, original_to_mini_index_mapping
