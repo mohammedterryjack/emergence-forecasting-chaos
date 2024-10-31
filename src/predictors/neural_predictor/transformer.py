@@ -151,6 +151,7 @@ class Transformer(Module):
         tgt_vocab_size:int, 
         max_seq_length:int, 
         src_encoder:callable,
+        tgt_encoder:callable,
         emergent_encoder:callable = None,
         d_model:int=512, 
         num_layers:int=6, 
@@ -162,7 +163,7 @@ class Transformer(Module):
         #self.encoder_embedding = Embedding(src_vocab_size, d_model)
         #self.decoder_embedding = Embedding(tgt_vocab_size, d_model)
         self.encoder_embedding = InputLayer(vocab_size=src_vocab_size, d_model=d_model, encoder=src_encoder)
-        self.decoder_embedding = InputLayer(vocab_size=tgt_vocab_size, d_model=d_model, encoder=src_encoder)
+        self.decoder_embedding = InputLayer(vocab_size=tgt_vocab_size, d_model=d_model, encoder=tgt_encoder)
         self.positional_encoding = PositionalEncoding(d_model, max_seq_length)
         if emergent_encoder:
             self.emergent_encoding = EmergentEncoding(d_model, max_seq_length)
@@ -202,14 +203,3 @@ class Transformer(Module):
 
         output = self.fc(dec_output)
         return output
-    
-    def predict_next(self, sequence:ndarray, return_distribution:bool=False) -> ndarray:
-        """
-        Given a sequence of integers as a numpy array
-        the model will predict the next in the sequece
-        If return_distribution is False
-        the output is given as an integer like the input
-        otherwise the raw distribution over the target vocab is returned"""
-        seq = tensor(sequence)
-        predictions = self(seq[:,:-1],seq[:,-1:]).detach().numpy()
-        return predictions if return_distribution else predictions.argmax(-1)

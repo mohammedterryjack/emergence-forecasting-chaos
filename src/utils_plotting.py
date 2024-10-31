@@ -1,12 +1,19 @@
 from numpy import ndarray
 from matplotlib.pyplot import subplots, show, tight_layout, legend
 
-def plot_spacetime_diagrams(predicted:ndarray, target:ndarray) -> None:
-    _, axes = subplots(1, 2)
-    axes[0].set_title('Expected')
-    axes[0].imshow(target)
-    axes[1].set_title('Predicted')
-    axes[1].imshow(predicted)
+def plot_spacetime_diagrams(predicted:ndarray, target:ndarray, batch_size:int) -> None:
+    _, axes = subplots(batch_size, 2)
+    if batch_size==1:
+        axes[0].set_title('Expected')
+        axes[0].imshow(target[0])
+        axes[1].set_title('Predicted')
+        axes[1].imshow(predicted[0])
+    else:
+        for b in range(batch_size):
+            axes[b,0].set_title('Expected')
+            axes[b,0].imshow(target[b])
+            axes[b,1].set_title('Predicted')
+            axes[b,1].imshow(predicted[b])
 
     tight_layout()
     show()
