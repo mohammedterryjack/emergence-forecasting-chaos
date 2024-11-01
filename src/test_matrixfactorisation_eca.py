@@ -55,11 +55,6 @@ _, predicted_vectors = zip(*predict_n(
     )
 ))
 
-plot_spacetime_diagrams(
-    target=[ca.evolution], 
-    predicted=[predicted_vectors],
-    batch_size=1
-)
 plot_trajectories(
     target=[[
         projector(
@@ -73,6 +68,12 @@ plot_trajectories(
             lattice_width=metadata.lattice_width
         ) for vector in predicted_vectors
     ]],
+    batch_size=1
+)
+
+plot_spacetime_diagrams(
+    target=[ca.evolution], 
+    predicted=[predicted_vectors],
     batch_size=1
 )
 

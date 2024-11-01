@@ -13,13 +13,14 @@ def generate_dataset(
     rule_number:int,
     lattice_width:int,
     batch_size:int,
+    context_sequence_length:int,
     max_sequence_length:int
 ) -> tuple[ndarray, ndarray, list[int]]:
     
     cas = [
         ElementaryCellularAutomata(
             lattice_width=lattice_width,
-            time_steps=max_sequence_length*2,
+            time_steps=context_sequence_length + max_sequence_length,
             transition_rule_number=rule_number
         ) for _ in range(batch_size)
     ]
@@ -34,8 +35,8 @@ def generate_dataset(
     before,after = [],[]
     for ca in cas:
         metadata = ca.info()
-        before.append(metadata.lattice_evolution[:max_sequence_length])
-        after_ = metadata.lattice_evolution[max_sequence_length:]
+        before.append(metadata.lattice_evolution[:context_sequence_length])
+        after_ = metadata.lattice_evolution[context_sequence_length:]
         after_encoded = [
             original_to_mini_index_mapping.index(index) for index in after_
         ]
@@ -49,21 +50,23 @@ def generate_dataset(
 
 rule_number = 30
 lattice_width = 50
-max_seq_length = 50
+context_length = 2
+forecast_length = 50
 batch_size = 3
 n_epochs = 100
 source_data, target_data, new_index_mapping = generate_dataset(
     rule_number=rule_number,
     lattice_width=lattice_width,
     batch_size=batch_size,
-    max_sequence_length=max_seq_length
+    context_sequence_length=context_length,
+    max_sequence_length=forecast_length
 ) 
 tgt_vocab_size = len(new_index_mapping)
 
 model = Transformer(
     src_vocab_size=lattice_width, 
     tgt_vocab_size=tgt_vocab_size, 
-    max_seq_length=max_seq_length, 
+    max_seq_length=forecast_length, 
     src_encoder=eca_encoder,
     tgt_encoder=lambda index,array_size: eca_encoder(
         index=new_index_mapping[index],
@@ -86,10 +89,8 @@ predicted_data = predict_n(
     model=model, 
     source=source_data,#source_seed,
     target=target_seed,
-    max_sequence_length=max_seq_length, 
     batch_size=batch_size,
-    lattice_width=lattice_width,
-    forecast_horizon=max_seq_length-1,
+    forecast_horizon=forecast_length-1,
 )
 
 #======DISPLAY PREDICTIONS================
@@ -112,12 +113,6 @@ target_data_encoded=[
     ]
     for b in range(batch_size)
 ]
-plot_spacetime_diagrams(
-    target=target_data_encoded,
-    predicted=predicted_data_encoded,
-    batch_size=batch_size
-)
-
 
 plot_trajectories(
     target=[
@@ -138,6 +133,12 @@ plot_trajectories(
         ]
         for b in range(batch_size)
     ],
+    batch_size=batch_size
+)
+
+plot_spacetime_diagrams(
+    target=target_data_encoded,
+    predicted=predicted_data_encoded,
     batch_size=batch_size
 )
 

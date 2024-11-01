@@ -20,10 +20,8 @@ def predict_n(
     model:Transformer, 
     source:ndarray,
     target:ndarray,
-    max_sequence_length:int, 
     batch_size:int,
     forecast_horizon:int,
-    lattice_width:int,
 ) -> ndarray:
     """autoregressively predict next n steps in sequence"""
     model.eval()
