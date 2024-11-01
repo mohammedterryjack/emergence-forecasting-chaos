@@ -25,7 +25,7 @@ def predict_n(
     forecast_horizon:int,
     lattice_width:int,
     original_to_mini_index_mapping:list[int],
-) -> tuple[ndarray,ndarray]:
+) -> ndarray:
     """autoregressively predict next n steps in sequence"""
     model.eval()
     with no_grad():            
@@ -36,6 +36,7 @@ def predict_n(
                 target=target,
                 return_distribution=False
             )[:,-1:]
+            
             target = array([
                 append(target[b], predicted_next_indexes_tgt[b])
                 for b in range(batch_size)
@@ -52,14 +53,4 @@ def predict_n(
                 append(source[b], predicted_next_indexes_src[b])
                 for b in range(batch_size)
             ])
-
-    source_embedded = array([
-        [
-            model.encoder_embedding.index_encoder(
-                index=i,
-                array_size=model.encoder_embedding.vocab_size
-            ) for i in source[b]
-        ]
-        for b in range(batch_size)
-    ])
-    return target, source_embedded
+    return target

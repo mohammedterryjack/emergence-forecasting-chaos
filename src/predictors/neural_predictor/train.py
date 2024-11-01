@@ -24,8 +24,6 @@ def train_model_with_target_indices(n_epochs:int, model:Transformer, x_train:nda
         optimiser.step()
         print(f"Epoch: {epoch+1}, Loss: {loss.item()}")
 
-    #y_hat = output.argmax(-1)
-    #y = y_train[:, :-1]
 
 def train_model_with_target_embeddings(n_epochs:int, model:Transformer, x_train:ndarray, y_train:ndarray) -> None:
     x_train = tensor(x_train)

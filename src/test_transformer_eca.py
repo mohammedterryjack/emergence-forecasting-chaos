@@ -19,7 +19,7 @@ def generate_dataset(
         ElementaryCellularAutomata(
             lattice_width=lattice_width,
             time_steps=max_sequence_length*2,
-            transition_rule_number=3
+            transition_rule_number=30
         ) for _ in range(batch_size)
     ]
 
@@ -50,7 +50,6 @@ lattice_width = 50
 max_seq_length = 50
 batch_size = 3
 n_epochs = 100
-#binary_threshold = 0.5
 source_data, target_data, new_index_mapping = generate_dataset(
     lattice_width=lattice_width,
     batch_size=batch_size,
@@ -78,16 +77,13 @@ train_model_with_target_indices(
     y_train=target_data,
 )
 
-
 #==========PREDICTIONS=============
-seed_indexes = array([
-    [new_index_mapping.index(i) for i in source_data[b]]
-    for b in range(batch_size)
-])[:,1:2]
-_,predicted_data_encoded = predict_n(
+source_seed = source_data[:,-1:]
+target_seed = target_data[:,:1]
+predicted_data = predict_n(
     model=model, 
-    source=source_data[:,:1],
-    target=seed_indexes,
+    source=source_seed,
+    target=target_seed,
     max_sequence_length=max_seq_length, 
     batch_size=batch_size,
     lattice_width=lattice_width,
@@ -96,6 +92,16 @@ _,predicted_data_encoded = predict_n(
 )
 
 #======DISPLAY PREDICTIONS================
+predicted_data_encoded = array([
+    [
+        model.encoder_embedding.index_encoder(
+            index=new_index_mapping[i],
+            array_size=model.encoder_embedding.vocab_size
+        ) for i in predicted_data[b]
+    ]
+    for b in range(batch_size)
+])
+
 target_data_encoded=[
     [
         eca_encoder(
@@ -137,4 +143,5 @@ plot_trajectories(
 
 
 #TODO:
+# - try using binary threshold method again and compare results
 # - try predicting by adding additional / emergent features
