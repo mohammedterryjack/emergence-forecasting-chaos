@@ -10,6 +10,7 @@ from utils_plotting import plot_trajectories, plot_spacetime_diagrams#plot_space
 #==========UTILITIES==================
 
 def generate_dataset(
+    rule_number:int,
     lattice_width:int,
     batch_size:int,
     max_sequence_length:int
@@ -19,7 +20,7 @@ def generate_dataset(
         ElementaryCellularAutomata(
             lattice_width=lattice_width,
             time_steps=max_sequence_length*2,
-            transition_rule_number=30
+            transition_rule_number=rule_number
         ) for _ in range(batch_size)
     ]
 
@@ -46,11 +47,13 @@ def generate_dataset(
 
 #==========SETUP==================
 
+rule_number = 30
 lattice_width = 50
 max_seq_length = 50
 batch_size = 3
 n_epochs = 100
 source_data, target_data, new_index_mapping = generate_dataset(
+    rule_number=rule_number,
     lattice_width=lattice_width,
     batch_size=batch_size,
     max_sequence_length=max_seq_length
@@ -78,17 +81,15 @@ train_model_with_target_indices(
 )
 
 #==========PREDICTIONS=============
-source_seed = source_data[:,-1:]
 target_seed = target_data[:,:1]
 predicted_data = predict_n(
     model=model, 
-    source=source_seed,
+    source=source_data,#source_seed,
     target=target_seed,
     max_sequence_length=max_seq_length, 
     batch_size=batch_size,
     lattice_width=lattice_width,
-    forecast_horizon=max_seq_length,
-    original_to_mini_index_mapping=new_index_mapping
+    forecast_horizon=max_seq_length-1,
 )
 
 #======DISPLAY PREDICTIONS================
@@ -144,4 +145,4 @@ plot_trajectories(
 
 #TODO:
 # - try using binary threshold method again and compare results
-# - try predicting by adding additional / emergent features
+# - try predicting by adding additional / emergent features in src_encoder

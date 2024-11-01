@@ -78,4 +78,5 @@ plot_trajectories(
 
 
 #TODO:
-# - try predicting by adding additional / emergent features
+# - try predicting by adding additional / emergent features in src_encoder
+

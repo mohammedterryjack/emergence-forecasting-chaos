@@ -114,13 +114,6 @@ class DecoderLayer(Module):
         return x
 
 
-class EmergentEncoding(Module):
-    def __init__(self, d_model, max_seq_length):
-        super(EmergentEncoding, self).__init__()
-                
-    def forward(self, x):
-        pass 
-
 class InputLayer(Module):
     def __init__(self, vocab_size:int, d_model:int, encoder:callable) -> None:
         super(InputLayer, self).__init__()
@@ -152,7 +145,6 @@ class Transformer(Module):
         max_seq_length:int, 
         src_encoder:callable,
         tgt_encoder:callable,
-        emergent_encoder:callable = None,
         d_model:int=512, 
         num_layers:int=6, 
         d_ff:int=2048, 
@@ -165,10 +157,6 @@ class Transformer(Module):
         self.encoder_embedding = InputLayer(vocab_size=src_vocab_size, d_model=d_model, encoder=src_encoder)
         self.decoder_embedding = InputLayer(vocab_size=tgt_vocab_size, d_model=d_model, encoder=tgt_encoder)
         self.positional_encoding = PositionalEncoding(d_model, max_seq_length)
-        if emergent_encoder:
-            self.emergent_encoding = EmergentEncoding(d_model, max_seq_length)
-        else:
-            self.emergent_encoding = None
 
         self.encoder_layers = ModuleList([EncoderLayer(d_model, num_heads, d_ff, dropout) for _ in range(num_layers)])
         self.decoder_layers = ModuleList([DecoderLayer(d_model, num_heads, d_ff, dropout) for _ in range(num_layers)])
@@ -186,12 +174,8 @@ class Transformer(Module):
 
     def forward(self, src, tgt):
         src_mask, tgt_mask = self.generate_mask(src, tgt) 
-        if self.emergent_encoding:
-            src_embedded = self.dropout(self.positional_encoding(self.emergent_encoding(self.encoder_embedding(src))))
-            tgt_embedded = self.dropout(self.positional_encoding(self.emergent_encoding(self.decoder_embedding(tgt))))
-        else:
-            src_embedded = self.dropout(self.positional_encoding(self.encoder_embedding(src)))
-            tgt_embedded = self.dropout(self.positional_encoding(self.decoder_embedding(tgt)))
+        src_embedded = self.dropout(self.positional_encoding(self.encoder_embedding(src)))
+        tgt_embedded = self.dropout(self.positional_encoding(self.decoder_embedding(tgt)))
 
         enc_output = src_embedded
         for enc_layer in self.encoder_layers:

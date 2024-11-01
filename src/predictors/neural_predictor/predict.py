@@ -1,4 +1,4 @@
-from numpy import ndarray, array, empty, append
+from numpy import ndarray, array, append
 from torch import no_grad, tensor
 
 from predictors.neural_predictor.transformer import Transformer
@@ -24,7 +24,6 @@ def predict_n(
     batch_size:int,
     forecast_horizon:int,
     lattice_width:int,
-    original_to_mini_index_mapping:list[int],
 ) -> ndarray:
     """autoregressively predict next n steps in sequence"""
     model.eval()
@@ -42,15 +41,4 @@ def predict_n(
                 for b in range(batch_size)
             ])
 
-            predicted_next_indexes_src = array([
-                [
-                    original_to_mini_index_mapping[i] for i in predicted_next_indexes_tgt[b]
-                ]
-                for b in range(batch_size)
-            ])
-
-            source = array([
-                append(source[b], predicted_next_indexes_src[b])
-                for b in range(batch_size)
-            ])
     return target
