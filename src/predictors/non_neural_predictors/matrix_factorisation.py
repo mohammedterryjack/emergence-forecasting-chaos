@@ -1,3 +1,5 @@
+from typing import Generator 
+
 from numpy import ndarray, isnan, zeros
 from numpy.random import rand
 from numpy.linalg import pinv 
@@ -70,3 +72,18 @@ def construct_memory_efficient_sparse_correlation_matrix(indexes:list[int]) -> t
     sparse_matrix[current_indices, next_indices] = 1
 
     return sparse_matrix, original_to_mini_index_mapping
+
+
+def predict_next(x:ndarray, trained_embeddings:ndarray) -> ndarray:
+    y = x @ trained_embeddings
+    return y.argmax()
+
+def predict_n(seed_index:int, n:int, index_to_vector:callable, trained_embeddings:ndarray) -> Generator[tuple[int,ndarray],None,None]:
+    index = seed_index   
+    for _ in range(n):
+        vector = index_to_vector(index=index)
+        index = predict_next(
+            x=vector,
+            trained_embeddings=trained_embeddings
+        )
+        yield index, vector
