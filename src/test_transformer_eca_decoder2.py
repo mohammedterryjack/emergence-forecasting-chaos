@@ -1,3 +1,9 @@
+"""Using new decoder method 
+- binary thresholding vector 
+so can also predict new configurations 
+which were never seen during training
+"""
+
 from numpy import array
 
 from predictors.neural_predictor.transformer import Transformer
@@ -184,6 +190,3 @@ plot_spacetime_diagrams(
     batch_size=batch_size
 )
 
-#TODO:
-# - think of way to test the other decoder method
-# - try predicting by adding additional / emergent features in src_encoder

@@ -1,3 +1,8 @@
+"""Using same decoder method as matrix factorisation 
+(limitation: cannot predict new configurations outside of those seen during training
+only can predict new configuration sequences)
+"""
+
 from numpy import array
 
 from predictors.neural_predictor.transformer import Transformer
@@ -95,6 +100,72 @@ plot_trajectories(
 plot_spacetime_diagrams(
     target=target_data_encoded,
     predicted=predicted_data_encoded,
+    batch_size=batch_size
+)
+
+
+
+test_source_data, test_target_data, test_new_index_mapping = generate_dataset(
+    rule_number=rule_number,
+    lattice_width=lattice_width,
+    batch_size=batch_size,
+    context_sequence_length=context_length,
+    max_sequence_length=forecast_length
+) 
+
+test_predicted_data = predict_n(
+    model=model, 
+    source=test_source_data,
+    target=test_target_data[:,:1],
+    batch_size=batch_size,
+    forecast_horizon=forecast_length-1,
+)
+
+test_predicted_data_encoded = array([
+    [
+        model.encoder_embedding.index_encoder(
+            index=new_index_mapping[i],
+            array_size=model.encoder_embedding.vocab_size
+        ) for i in test_predicted_data[b]
+    ]
+    for b in range(batch_size)
+])
+
+test_target_data_encoded=[
+    [
+        eca_encoder(
+            index=test_new_index_mapping[i],
+            array_size=lattice_width
+        ) for i in test_target_data[b]
+    ]
+    for b in range(batch_size)
+]
+
+plot_trajectories(
+    target=[
+        [
+            projector(
+                embedding=embedding,
+                lattice_width=lattice_width
+            ) for embedding in test_target_data_encoded[b]
+        ]
+        for b in range(batch_size)
+    ], 
+    predicted=[
+        [
+            projector(
+                embedding=embedding,
+                lattice_width=lattice_width
+            ) for embedding in test_predicted_data_encoded[b]
+        ]
+        for b in range(batch_size)
+    ],
+    batch_size=batch_size
+)
+
+plot_spacetime_diagrams(
+    target=test_target_data_encoded,
+    predicted=test_predicted_data_encoded,
     batch_size=batch_size
 )
 
