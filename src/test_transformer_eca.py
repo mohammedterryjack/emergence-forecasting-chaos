@@ -48,7 +48,7 @@ def generate_dataset(
 
 #==========SETUP==================
 
-rule_number = 3
+rule_number = 30
 lattice_width = 50
 context_length = 2
 forecast_length = 50
@@ -77,10 +77,10 @@ model = Transformer(
 #==========TRAINING==================
 
 train_model_with_target_indices( 
-    n_epochs=n_epochs,
-    model=model,
-    x_train=source_data,
-    y_train=target_data,
+   n_epochs=n_epochs,
+   model=model,
+   x_train=source_data,
+   y_train=target_data,
 )
 
 #==========PREDICTIONS=============
@@ -152,18 +152,25 @@ model2 = Transformer(
 
 #==========TRAINING==================
 
+target_data2 = array([
+    [
+        new_index_mapping[index] for index in target_data[b]
+    ]
+    for b in range(batch_size)
+])
+
 train_model_with_target_embeddings( 
    n_epochs=n_epochs,
    model=model2,
    x_train=source_data,
-   y_train=target_data,
+   y_train=target_data2,
 )
 
 #==========PREDICTIONS=============
 predicted_data2 = predict_n_encoded(
     model=model2, 
     source=source_data,
-    target=target_data[:,:1],
+    target=target_data2[:,:1],
     batch_size=batch_size,
     forecast_horizon=forecast_length-1,
     vector_to_index=lambda vector: eca_decoder(
@@ -173,6 +180,16 @@ predicted_data2 = predict_n_encoded(
 )
 
 #======DISPLAY PREDICTIONS================
+target_data2_encoded=[
+    [
+        eca_encoder(
+            index=i,
+            array_size=lattice_width
+        ) for i in target_data2[b]
+    ]
+    for b in range(batch_size)
+]
+
 predicted_data2_encoded = array([
     [
         model.encoder_embedding.index_encoder(
@@ -189,7 +206,7 @@ plot_trajectories(
             projector(
                 embedding=embedding,
                 lattice_width=lattice_width
-            ) for embedding in target_data_encoded[b]
+            ) for embedding in target_data2_encoded[b]
         ]
         for b in range(batch_size)
     ], 
@@ -206,7 +223,7 @@ plot_trajectories(
 )
 
 plot_spacetime_diagrams(
-    target=target_data_encoded,
+    target=target_data2_encoded,
     predicted=predicted_data2_encoded,
     batch_size=batch_size
 )
