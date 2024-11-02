@@ -40,3 +40,37 @@ def predict_n(
             ])
 
     return target
+
+
+def predict_n_encoded(
+    model:Transformer, 
+    source:ndarray,
+    target:ndarray,
+    batch_size:int,
+    forecast_horizon:int,
+    vector_to_index:callable
+) -> ndarray:
+    """autoregressively predict next n steps in sequence"""
+    model.eval()
+    with no_grad():            
+        for iteration in range(forecast_horizon):
+            predicted_next_vectors = predict_next(
+                model=model,
+                source=source,
+                target=target,
+                return_distribution=True
+            )[:,-1:]
+
+            predicted_next_indexes_tgt = array([
+                [
+                    vector_to_index(vector) for vector in predicted_next_vectors[b]
+                ]
+                for b in range(batch_size)
+            ])
+
+            target = array([
+                append(target[b], predicted_next_indexes_tgt[b])
+                for b in range(batch_size)
+            ])
+
+    return target

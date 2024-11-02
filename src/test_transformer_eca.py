@@ -1,12 +1,12 @@
 from numpy import ndarray, array, append
 
 from predictors.neural_predictor.transformer import Transformer
-from predictors.neural_predictor.train import train_model_with_target_indices #train_model_with_target_embeddings
-from predictors.neural_predictor.predict import predict_n
+from predictors.neural_predictor.train import train_model_with_target_indices, train_model_with_target_embeddings
+from predictors.neural_predictor.predict import predict_n, predict_n_encoded
 from dynamical_system.eca.elementary_cellular_automata import ElementaryCellularAutomata
 from utils_projection import projector
-from utils_encoder import eca_encoder #, eca_decoder
-from utils_plotting import plot_trajectories, plot_spacetime_diagrams#plot_spacetime_diagrams_binarised
+from utils_encoder import eca_encoder, eca_decoder
+from utils_plotting import plot_trajectories, plot_spacetime_diagrams
 #==========UTILITIES==================
 
 def generate_dataset(
@@ -48,7 +48,7 @@ def generate_dataset(
 
 #==========SETUP==================
 
-rule_number = 30
+rule_number = 3
 lattice_width = 50
 context_length = 2
 forecast_length = 50
@@ -84,16 +84,15 @@ train_model_with_target_indices(
 )
 
 #==========PREDICTIONS=============
-target_seed = target_data[:,:1]
 predicted_data = predict_n(
     model=model, 
-    source=source_data,#source_seed,
-    target=target_seed,
+    source=source_data,
+    target=target_data[:,:1],
     batch_size=batch_size,
     forecast_horizon=forecast_length-1,
 )
 
-#======DISPLAY PREDICTIONS================
+# #======DISPLAY PREDICTIONS================
 predicted_data_encoded = array([
     [
         model.encoder_embedding.index_encoder(
@@ -142,8 +141,75 @@ plot_spacetime_diagrams(
     batch_size=batch_size
 )
 
+#===========NEW MODEL USING DIFFERENT DECODER===============
+model2 = Transformer(
+    src_vocab_size=lattice_width, 
+    tgt_vocab_size=lattice_width, 
+    max_seq_length=forecast_length, 
+    src_encoder=eca_encoder,
+    tgt_encoder=eca_encoder
+)
 
+#==========TRAINING==================
+
+train_model_with_target_embeddings( 
+   n_epochs=n_epochs,
+   model=model2,
+   x_train=source_data,
+   y_train=target_data,
+)
+
+#==========PREDICTIONS=============
+predicted_data2 = predict_n_encoded(
+    model=model2, 
+    source=source_data,
+    target=target_data[:,:1],
+    batch_size=batch_size,
+    forecast_horizon=forecast_length-1,
+    vector_to_index=lambda vector: eca_decoder(
+        lattice=vector,
+        binary_threshold=0.0
+    )
+)
+
+#======DISPLAY PREDICTIONS================
+predicted_data2_encoded = array([
+    [
+        model.encoder_embedding.index_encoder(
+            index=i,
+            array_size=model.encoder_embedding.vocab_size
+        ) for i in predicted_data2[b]
+    ]
+    for b in range(batch_size)
+])
+
+plot_trajectories(
+    target=[
+        [
+            projector(
+                embedding=embedding,
+                lattice_width=lattice_width
+            ) for embedding in target_data_encoded[b]
+        ]
+        for b in range(batch_size)
+    ], 
+    predicted=[
+        [
+            projector(
+                embedding=embedding,
+                lattice_width=lattice_width
+            ) for embedding in predicted_data2_encoded[b]
+        ]
+        for b in range(batch_size)
+    ],
+    batch_size=batch_size
+)
+
+plot_spacetime_diagrams(
+    target=target_data_encoded,
+    predicted=predicted_data2_encoded,
+    batch_size=batch_size
+)
 
 #TODO:
-# - try using binary threshold method again and compare results
 # - try predicting by adding additional / emergent features in src_encoder
