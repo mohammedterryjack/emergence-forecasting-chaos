@@ -9,7 +9,7 @@ from utils_plotting import plot_trajectories, plot_spacetime_diagrams
 from utils_data_loader import generate_dataset
 
 
-rule_number=30
+rule_number=3
 lattice_width = 50
 context_length = 2
 forecast_length = 50
@@ -45,6 +45,7 @@ train_model_with_target_embeddings(
    x_train=source_data,
    y_train=target_data,
 )
+
 
 predicted_data = predict_n_encoded(
     model=model, 
@@ -106,7 +107,83 @@ plot_spacetime_diagrams(
     batch_size=batch_size
 )
 
+
+
+
+test_source_data, test_target_data_, test_new_index_mapping = generate_dataset(
+    rule_number=rule_number,
+    lattice_width=lattice_width,
+    batch_size=batch_size,
+    context_sequence_length=context_length,
+    max_sequence_length=forecast_length
+) 
+test_target_data = array([
+    [
+        test_new_index_mapping[index] for index in test_target_data_[b]
+    ]
+    for b in range(batch_size)
+])
+
+test_predicted_data = predict_n_encoded(
+    model=model, 
+    source=test_source_data,
+    target=test_target_data[:,:1],
+    batch_size=batch_size,
+    forecast_horizon=forecast_length-1,
+    vector_to_index=lambda vector: eca_decoder(
+        lattice=vector,
+        binary_threshold=0.0
+    )
+)
+
+test_target_data_encoded=[
+    [
+        eca_encoder(
+            index=i,
+            array_size=lattice_width
+        ) for i in test_target_data[b]
+    ]
+    for b in range(batch_size)
+]
+
+test_predicted_data_encoded = array([
+    [
+        model.encoder_embedding.index_encoder(
+            index=i,
+            array_size=model.encoder_embedding.vocab_size
+        ) for i in test_predicted_data[b]
+    ]
+    for b in range(batch_size)
+])
+
+plot_trajectories(
+    target=[
+        [
+            projector(
+                embedding=embedding,
+                lattice_width=lattice_width
+            ) for embedding in test_target_data_encoded[b]
+        ]
+        for b in range(batch_size)
+    ], 
+    predicted=[
+        [
+            projector(
+                embedding=embedding,
+                lattice_width=lattice_width
+            ) for embedding in test_predicted_data_encoded[b]
+        ]
+        for b in range(batch_size)
+    ],
+    batch_size=batch_size
+)
+
+plot_spacetime_diagrams(
+    target=test_target_data_encoded,
+    predicted=test_predicted_data_encoded,
+    batch_size=batch_size
+)
+
 #TODO:
-# - refactor all to use new utils etc
-# - test using newly generated trajectories (not train ones)
+# - think of way to test the other decoder method
 # - try predicting by adding additional / emergent features in src_encoder
