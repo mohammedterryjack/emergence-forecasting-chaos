@@ -9,9 +9,8 @@ from numpy import array
 from predictors.neural_predictor.transformer import Transformer
 from predictors.neural_predictor.train import train_model_with_target_embeddings
 from predictors.neural_predictor.predict import predict_n_encoded
-from utils_projection import projector
 from utils_encoder import eca_encoder, eca_decoder
-from utils_plotting import plot_trajectories, plot_spacetime_diagrams
+from utils_plotting import plot_results 
 from utils_data_loader import generate_dataset
 
 
@@ -22,19 +21,13 @@ forecast_length = 50
 batch_size = 3
 n_epochs = 100
 
-source_data, target_data_, new_index_mapping = generate_dataset(
+source_data, target_data = generate_dataset(
     rule_number=rule_number,
     lattice_width=lattice_width,
     batch_size=batch_size,
     context_sequence_length=context_length,
     max_sequence_length=forecast_length
 ) 
-target_data = array([
-    [
-        new_index_mapping[index] for index in target_data_[b]
-    ]
-    for b in range(batch_size)
-])
 
 
 model = Transformer(
@@ -85,50 +78,22 @@ predicted_data_encoded = array([
     for b in range(batch_size)
 ])
 
-plot_trajectories(
-    target=[
-        [
-            projector(
-                embedding=embedding,
-                lattice_width=lattice_width
-            ) for embedding in target_data_encoded[b]
-        ]
-        for b in range(batch_size)
-    ], 
-    predicted=[
-        [
-            projector(
-                embedding=embedding,
-                lattice_width=lattice_width
-            ) for embedding in predicted_data_encoded[b]
-        ]
-        for b in range(batch_size)
-    ],
-    batch_size=batch_size
-)
 
-plot_spacetime_diagrams(
+plot_results(
     target=target_data_encoded,
     predicted=predicted_data_encoded,
-    batch_size=batch_size
+    batch_size=batch_size,
+    lattice_width=lattice_width
 )
 
 
-
-
-test_source_data, test_target_data_, test_new_index_mapping = generate_dataset(
+test_source_data, test_target_data = generate_dataset(
     rule_number=rule_number,
     lattice_width=lattice_width,
     batch_size=batch_size,
     context_sequence_length=context_length,
     max_sequence_length=forecast_length
 ) 
-test_target_data = array([
-    [
-        test_new_index_mapping[index] for index in test_target_data_[b]
-    ]
-    for b in range(batch_size)
-])
 
 test_predicted_data = predict_n_encoded(
     model=model, 
@@ -162,31 +127,10 @@ test_predicted_data_encoded = array([
     for b in range(batch_size)
 ])
 
-plot_trajectories(
-    target=[
-        [
-            projector(
-                embedding=embedding,
-                lattice_width=lattice_width
-            ) for embedding in test_target_data_encoded[b]
-        ]
-        for b in range(batch_size)
-    ], 
-    predicted=[
-        [
-            projector(
-                embedding=embedding,
-                lattice_width=lattice_width
-            ) for embedding in test_predicted_data_encoded[b]
-        ]
-        for b in range(batch_size)
-    ],
-    batch_size=batch_size
-)
 
-plot_spacetime_diagrams(
+plot_results(
     target=test_target_data_encoded,
     predicted=test_predicted_data_encoded,
-    batch_size=batch_size
+    batch_size=batch_size,
+    lattice_width=lattice_width
 )
-

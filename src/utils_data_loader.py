@@ -7,6 +7,30 @@ def generate_dataset(
     lattice_width:int,
     batch_size:int,
     context_sequence_length:int,
+    max_sequence_length:int,
+    initial_configurations:list[int]=None
+) -> tuple[ndarray, ndarray]:
+    if initial_configurations is None:
+        initial_configurations = [None for _ in range(batch_size)]
+    
+    before,after = [],[]
+    for b in range(batch_size):
+        ca = ElementaryCellularAutomata(
+            initial_state=initial_configurations[b],
+            lattice_width=lattice_width,
+            time_steps=context_sequence_length + max_sequence_length,
+            transition_rule_number=rule_number
+        ) 
+        before.append(ca.info().lattice_evolution[:context_sequence_length])
+        after.append(ca.info().lattice_evolution[context_sequence_length:])
+    return array(before),array(after)
+
+
+def generate_dataset_with_index_mapping(
+    rule_number:int,
+    lattice_width:int,
+    batch_size:int,
+    context_sequence_length:int,
     max_sequence_length:int
 ) -> tuple[ndarray, ndarray, list[int]]:
     

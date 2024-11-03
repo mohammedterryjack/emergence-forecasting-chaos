@@ -11,7 +11,7 @@ from predictors.neural_predictor.predict import predict_n
 from utils_projection import projector
 from utils_encoder import eca_encoder
 from utils_plotting import plot_trajectories, plot_spacetime_diagrams
-from utils_data_loader import generate_dataset
+from utils_data_loader import generate_dataset_with_index_mapping
 
 
 rule_number = 30
@@ -20,7 +20,7 @@ context_length = 2
 forecast_length = 50
 batch_size = 3
 n_epochs = 100
-source_data, target_data, new_index_mapping = generate_dataset(
+source_data, target_data, new_index_mapping = generate_dataset_with_index_mapping(
     rule_number=rule_number,
     lattice_width=lattice_width,
     batch_size=batch_size,
