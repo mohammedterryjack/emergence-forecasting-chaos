@@ -14,12 +14,12 @@ from utils_plotting import plot_results
 from utils_data_loader import generate_dataset
 
 
-rule_number=3
+rule_number=30
 lattice_width = 50
 context_length = 2
 forecast_length = 50
-batch_size = 3
-n_epochs = 100
+batch_size = 2
+n_epochs = 10
 
 source_data, target_data = generate_dataset(
     rule_number=rule_number,
@@ -28,7 +28,7 @@ source_data, target_data = generate_dataset(
     context_sequence_length=context_length,
     max_sequence_length=forecast_length
 ) 
-
+target_data = array(target_data)
 
 model = Transformer(
     src_vocab_size=lattice_width, 
@@ -94,6 +94,7 @@ test_source_data, test_target_data = generate_dataset(
     context_sequence_length=context_length,
     max_sequence_length=forecast_length
 ) 
+test_target_data = array(test_target_data)
 
 test_predicted_data = predict_n_encoded(
     model=model, 

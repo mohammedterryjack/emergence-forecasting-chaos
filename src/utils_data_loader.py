@@ -1,5 +1,3 @@
-from numpy import ndarray, array
-
 from dynamical_system.eca.elementary_cellular_automata import ElementaryCellularAutomata
 
 def generate_dataset(
@@ -9,7 +7,7 @@ def generate_dataset(
     context_sequence_length:int,
     max_sequence_length:int,
     initial_configurations:list[int]=None
-) -> tuple[ndarray, ndarray]:
+) -> tuple[list[int], list[int]]:
     if initial_configurations is None:
         initial_configurations = [None for _ in range(batch_size)]
     
@@ -23,7 +21,7 @@ def generate_dataset(
         ) 
         before.append(ca.info().lattice_evolution[:context_sequence_length])
         after.append(ca.info().lattice_evolution[context_sequence_length:])
-    return array(before),array(after)
+    return before,after
 
 
 def generate_dataset_with_index_mapping(
@@ -32,7 +30,7 @@ def generate_dataset_with_index_mapping(
     batch_size:int,
     context_sequence_length:int,
     max_sequence_length:int
-) -> tuple[ndarray, ndarray, list[int]]:
+) -> tuple[list[int], list[int], list[int]]:
     
     cas = [
         ElementaryCellularAutomata(
@@ -59,4 +57,4 @@ def generate_dataset_with_index_mapping(
         ]
         after.append(after_encoded)
     
-    return array(before),array(after),original_to_mini_index_mapping
+    return before,after,original_to_mini_index_mapping

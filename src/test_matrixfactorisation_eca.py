@@ -9,10 +9,10 @@ from utils_encoder import eca_encoder
 from utils_plotting import plot_results 
 from utils_data_loader import generate_dataset
 
-batch_size = 3
+batch_size = 2
 lattice_width=50
-forecast_length=100
-rule_number=3
+forecast_length=50
+rule_number=30
 
 
 _, target_data = generate_dataset(
