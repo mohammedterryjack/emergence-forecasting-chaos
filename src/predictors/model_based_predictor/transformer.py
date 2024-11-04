@@ -152,8 +152,6 @@ class Transformer(Module):
         dropout:int=0.1,
     ) -> None:
         super(Transformer, self).__init__()
-        #self.encoder_embedding = Embedding(src_vocab_size, d_model)
-        #self.decoder_embedding = Embedding(tgt_vocab_size, d_model)
         self.encoder_embedding = InputLayer(vocab_size=src_vocab_size, d_model=d_model, encoder=src_encoder)
         self.decoder_embedding = InputLayer(vocab_size=tgt_vocab_size, d_model=d_model, encoder=tgt_encoder)
         self.positional_encoding = PositionalEncoding(d_model, max_seq_length)
