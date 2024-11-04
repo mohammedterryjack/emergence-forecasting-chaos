@@ -1,6 +1,6 @@
 from matplotlib.pyplot import subplots, show, subplots_adjust
 
-from utils_projection import projector 
+from utils.projection import projector 
 
 def plot_spacetime_diagrams(predicted:list[list[int]], target:list[list[int]], batch_size:int) -> None:
     _, axes = subplots(batch_size, 2)

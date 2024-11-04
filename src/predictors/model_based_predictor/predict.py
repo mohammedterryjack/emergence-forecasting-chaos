@@ -1,7 +1,7 @@
 from numpy import ndarray, array, append
 from torch import no_grad, tensor
 
-from predictors.neural_predictor.transformer import Transformer
+from predictors.model_based_predictor.transformer import Transformer
 
 def predict_next(model:Transformer, source:ndarray, target:ndarray, return_distribution:bool=False) -> ndarray:
     """

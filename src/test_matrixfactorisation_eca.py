@@ -1,18 +1,18 @@
 from numpy import array
 
-from predictors.non_neural_predictors.matrix_factorisation import (
+from predictors.model_free_predictor.matrix_factorisation import (
     matrix_factorisation_pseudo_inverse, 
     construct_memory_efficient_sparse_correlation_matrix,
     predict_n
 )
-from utils_encoder import eca_encoder
-from utils_plotting import plot_results 
-from utils_data_loader import generate_dataset
+from utils.encoder import eca_encoder
+from utils.plotting import plot_results 
+from utils.data_loader import generate_dataset
 
 batch_size = 2
 lattice_width=50
 forecast_length=50
-rule_number=30
+rule_number=3
 
 
 _, target_data = generate_dataset(

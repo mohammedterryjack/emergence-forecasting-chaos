@@ -6,20 +6,20 @@ which were never seen during training
 
 from numpy import array
 
-from predictors.neural_predictor.transformer import Transformer
-from predictors.neural_predictor.train import train_model_with_target_embeddings
-from predictors.neural_predictor.predict import predict_n_encoded
-from utils_encoder import eca_encoder, eca_decoder
-from utils_plotting import plot_results 
-from utils_data_loader import generate_dataset
+from predictors.model_based_predictor.transformer import Transformer
+from predictors.model_based_predictor.train import train_model_with_target_embeddings
+from predictors.model_based_predictor.predict import predict_n_encoded
+from utils.encoder import eca_encoder, eca_decoder
+from utils.plotting import plot_results 
+from utils.data_loader import generate_dataset
 
 
-rule_number=30
+rule_number=3
 lattice_width = 50
 context_length = 2
 forecast_length = 50
 batch_size = 2
-n_epochs = 10
+n_epochs = 100
 
 source_data, target_data = generate_dataset(
     rule_number=rule_number,
