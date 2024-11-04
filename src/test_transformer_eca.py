@@ -16,10 +16,11 @@ from utils.data_loader import generate_dataset
 
 rule_number=3
 lattice_width = 50
-context_length = 2
+context_length = 5
 forecast_length = 50
 batch_size = 2
 n_epochs = 100
+include_emergent_features = True
 
 source_data, target_data = generate_dataset(
     rule_number=rule_number,
@@ -31,10 +32,14 @@ source_data, target_data = generate_dataset(
 target_data = array(target_data)
 
 model = Transformer(
-    src_vocab_size=lattice_width, 
+    src_vocab_size= lattice_width, 
     tgt_vocab_size=lattice_width, 
     max_seq_length=forecast_length, 
-    src_encoder=eca_encoder,
+    src_encoder=lambda index,array_size:eca_encoder(
+        index=index,
+        array_size=array_size,
+        include_emergent_features=include_emergent_features
+    ),
     tgt_encoder=eca_encoder
 )
 
