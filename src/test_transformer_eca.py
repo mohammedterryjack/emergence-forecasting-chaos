@@ -9,7 +9,7 @@ from numpy import array
 from predictors.model_based_predictor.transformer import Transformer
 from predictors.model_based_predictor.train import train_model_with_target_embeddings
 from predictors.model_based_predictor.predict import predict_n_encoded
-from utils.encoder import eca_encoder, eca_decoder
+from utils.encoder import eca_encoder, eca_decoder, EncoderOption
 from utils.plotting import plot_results 
 from utils.data_loader import generate_dataset
 
@@ -20,7 +20,7 @@ context_length = 5
 forecast_length = 50
 batch_size = 2
 n_epochs = 100
-include_emergent_features = True
+encoder_option = EncoderOption.SPACETIME_AND_EMERGENCE
 
 source_data, target_data = generate_dataset(
     rule_number=rule_number,
@@ -38,9 +38,13 @@ model = Transformer(
     src_encoder=lambda index,array_size:eca_encoder(
         index=index,
         array_size=array_size,
-        include_emergent_features=include_emergent_features
+        option=encoder_option
     ),
-    tgt_encoder=eca_encoder
+    tgt_encoder=lambda index,array_size:eca_encoder(
+        index=index,
+        array_size=array_size,
+        option=EncoderOption.SPACETIME_ONLY
+    )
 )
 
 train_model_with_target_embeddings( 
@@ -67,7 +71,8 @@ target_data_encoded=[
     [
         eca_encoder(
             index=i,
-            array_size=lattice_width
+            array_size=lattice_width,
+            option=EncoderOption.SPACETIME_ONLY
         ) for i in target_data[b]
     ]
     for b in range(batch_size)
@@ -117,7 +122,8 @@ test_target_data_encoded=[
     [
         eca_encoder(
             index=i,
-            array_size=lattice_width
+            array_size=lattice_width,
+            option=EncoderOption.SPACETIME_ONLY
         ) for i in test_target_data[b]
     ]
     for b in range(batch_size)
