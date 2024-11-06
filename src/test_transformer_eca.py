@@ -14,20 +14,28 @@ from utils.plotting import plot_results
 from utils.data_loader import generate_dataset
 
 
-rule_number=3
 lattice_width = 50
-context_length = 5
-forecast_length = 50
-batch_size = 2
-n_epochs = 100
+forecast_length = 25
+rule_number=30
 encoder_option = EncoderOption.SPACETIME_AND_EMERGENCE
+ics = [
+    1,
+    682918332392260,
+    511854315302018,
+    635621643137219,
+    26398899248128
+]
+batch_size = len(ics)
+n_epochs = 100
+context_length = 5
 
-source_data, target_data = generate_dataset(
+context_data, target_data = generate_dataset(
     rule_number=rule_number,
     lattice_width=lattice_width,
     batch_size=batch_size,
     context_sequence_length=context_length,
-    max_sequence_length=forecast_length
+    max_sequence_length=forecast_length,
+    initial_configurations=ics
 ) 
 target_data = array(target_data)
 
@@ -50,14 +58,14 @@ model = Transformer(
 train_model_with_target_embeddings( 
    n_epochs=n_epochs,
    model=model,
-   x_train=source_data,
+   x_train=context_data,
    y_train=target_data,
 )
 
 
 predicted_data = predict_n_encoded(
     model=model, 
-    source=source_data,
+    source=context_data,
     target=target_data[:,:1],
     batch_size=batch_size,
     forecast_horizon=forecast_length-1,
@@ -97,7 +105,7 @@ plot_results(
 )
 
 
-test_source_data, test_target_data = generate_dataset(
+test_context_data, test_target_data = generate_dataset(
     rule_number=rule_number,
     lattice_width=lattice_width,
     batch_size=batch_size,
@@ -108,7 +116,7 @@ test_target_data = array(test_target_data)
 
 test_predicted_data = predict_n_encoded(
     model=model, 
-    source=test_source_data,
+    source=test_context_data,
     target=test_target_data[:,:1],
     batch_size=batch_size,
     forecast_horizon=forecast_length-1,

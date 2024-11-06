@@ -3,4 +3,6 @@ phd Thesis
 
 
 ## TODO:
-- predict using emergent features
+[] combine and compare forecasts for multiple methods
+[] measure the error and plot
+[] extract emergent features

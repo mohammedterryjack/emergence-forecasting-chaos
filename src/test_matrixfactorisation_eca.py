@@ -9,19 +9,26 @@ from utils.encoder import eca_encoder, EncoderOption
 from utils.plotting import plot_results 
 from utils.data_loader import generate_dataset
 
-batch_size = 2
 lattice_width=50
-forecast_length=50
-rule_number=3
+forecast_length=25
+rule_number=30
 encoder_option = EncoderOption.SPACETIME_AND_EMERGENCE
-
+ics = [
+    1,
+    682918332392260,
+    511854315302018,
+    635621643137219,
+    26398899248128
+]
+batch_size = len(ics)
 
 _, target_data = generate_dataset(
     rule_number=rule_number,
     lattice_width=lattice_width,
     batch_size=batch_size,
     context_sequence_length=0,
-    max_sequence_length=forecast_length
+    max_sequence_length=forecast_length,
+    initial_configurations=ics
 ) 
 
 
