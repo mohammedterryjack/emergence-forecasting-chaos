@@ -1,7 +1,8 @@
 from numpy import array
 from matplotlib.pyplot import subplots, show, subplots_adjust
 
-from utils.projection import projector 
+from utils.projection import projector
+from utils.evaluation import errors
 
 def plot_spacetime_diagrams(predicted:list[list[int]], target:list[list[int]], batch_size:int) -> None:
     _, axes = subplots(batch_size, 2)
@@ -33,14 +34,13 @@ def plot_trajectories(target:list[float], predicted:list[float], batch_size:int)
             axes[b].legend(loc='lower center', bbox_to_anchor=(0.5, -0.15), ncol=2)
     show()
 
-def plot_results(target:list[list[int]], predicted:list[list[int]], batch_size:int, lattice_width:int) -> None:
-    #- highlight the parts on the spacetime where they differ using new color overlay
+def plot_results(target:list[list[int]], predicted:list[list[int]], timesteps:list[int], batch_size:int, lattice_width:int) -> None:
 
     target_projected=[
         [
             projector(
                 embedding=vector,
-                lattice_width=lattice_width
+                lattice_width=lattice_width,
             ) for vector in target[b]
         ] for b in range(batch_size)
     ]
@@ -48,14 +48,16 @@ def plot_results(target:list[list[int]], predicted:list[list[int]], batch_size:i
         [
             projector(
                 embedding=vector,
-                lattice_width=lattice_width
+                lattice_width=lattice_width,
             ) for vector in predicted[b]
         ] for b in range(batch_size)
     ]
-
-    error = array(target_projected) - array(predicted_projected)
-    l1_error = abs(error)
-    #l2_error = error**2
+    scores = errors(
+        target=target,
+        predicted=predicted,
+        batch_size=batch_size,
+        lattice_width=lattice_width
+    )    
 
     _, axes = subplots(batch_size, 4, sharey=True)
     if batch_size==1:
@@ -63,23 +65,25 @@ def plot_results(target:list[list[int]], predicted:list[list[int]], batch_size:i
         axes[0].imshow(target[0], cmap='gray')
         axes[1].set_title('Predicted')
         axes[1].imshow(predicted[0], cmap='gray')
-        axes[2].plot(target_projected[0],range(len(target_projected[0])), label='expected', color='b')
-        axes[2].plot(predicted_projected[0],range(len(predicted_projected[0])), label='predicted', linestyle=':', color='g')
+        axes[2].plot(target_projected[0],timesteps, label='expected', color='b')
+        axes[2].plot(predicted_projected[0],timesteps, label='predicted', linestyle=':', color='g')
         axes[2].invert_yaxis()
         axes[2].legend(loc='lower center', bbox_to_anchor=(0.5, -0.15), ncol=2)
-        axes[3].plot(l1_error[0],range(len(l1_error[0])), label='l1 error', color='r')
-        #axes[3].plot(l2_error[0],range(len(l2_error[0])))
+        axes[3].plot(scores['distance'][0],timesteps, label='cosine distance', color='orange')
+        axes[3].plot(scores['mae'][0],timesteps, label='MAE', color='r')
+        axes[3].plot(scores['rmse'][0],timesteps, label='RMSE', color='gray')
         axes[3].invert_yaxis()
         axes[3].legend(loc='lower center', bbox_to_anchor=(0.5, -0.15), ncol=2)
     else:
         for b in range(batch_size):
             axes[b, 0].imshow(target[b], cmap='gray')
             axes[b, 1].imshow(predicted[b], cmap='gray')
-            axes[b, 2].plot(target_projected[b],range(len(target_projected[b])), label='expected', color='b')
-            axes[b, 2].plot(predicted_projected[b], range(len(predicted_projected[b])), label='predicted', linestyle=':', color='g')
+            axes[b, 2].plot(target_projected[b],timesteps, label='expected', color='b')
+            axes[b, 2].plot(predicted_projected[b], timesteps, label='predicted', linestyle=':', color='g')
             axes[b, 2].invert_yaxis()
-            axes[b, 3].plot(l1_error[b],range(len(l1_error[b])), label='l1 error', color='r')
-            #axes[b, 3].plot(l2_error[b],range(len(l2_error[b])))
+            axes[b, 3].plot(scores['distance'][b],timesteps, label='cosine distance', color='orange')
+            axes[b, 3].plot(scores['mae'][b],timesteps, label='MAE', color='r')
+            axes[b, 3].plot(scores['rmse'][b],timesteps, label='RMSE', color='gray')
             axes[b, 3].invert_yaxis()
 
         #sharey

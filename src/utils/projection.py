@@ -10,7 +10,10 @@ def cosine_similarity(a:ndarray, b:ndarray) -> float:
     return result
 
 def angle(x:ndarray, origin:ndarray) -> float:
-    cos_theta = cosine_similarity(a=origin,b=convert_zeros_to_minus_one(x))
+    cos_theta = cosine_similarity(
+        a=convert_zeros_to_minus_one(origin),
+        b=convert_zeros_to_minus_one(x)
+    )
     return arccos(cos_theta)
 
 def projector(embedding:ndarray, lattice_width:int) -> float:

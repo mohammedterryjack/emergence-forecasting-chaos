@@ -91,7 +91,8 @@ plot_results(
     target=target_data_vectors,
     predicted=predicted_data_vectors,
     batch_size=batch_size,
-    lattice_width=lattice_width
+    lattice_width=lattice_width,
+    timesteps=list(range(forecast_length))
 )
 
 
@@ -149,5 +150,6 @@ plot_results(
     target=test_target_data_vectors,
     predicted=test_predicted_data_vectors,
     batch_size=batch_size,
-    lattice_width=lattice_width
+    lattice_width=lattice_width,
+    timesteps=list(range(forecast_length))
 )

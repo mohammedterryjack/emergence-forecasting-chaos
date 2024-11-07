@@ -101,7 +101,8 @@ plot_results(
     target=target_data_encoded,
     predicted=predicted_data_encoded,
     batch_size=batch_size,
-    lattice_width=lattice_width
+    lattice_width=lattice_width,
+    timesteps=list(range(forecast_length))
 )
 
 
@@ -152,5 +153,6 @@ plot_results(
     target=test_target_data_encoded,
     predicted=test_predicted_data_encoded,
     batch_size=batch_size,
-    lattice_width=lattice_width
+    lattice_width=lattice_width,
+    timesteps=list(range(forecast_length))
 )
