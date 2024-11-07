@@ -3,6 +3,6 @@ phd Thesis
 
 
 ## TODO:
+[] plot BCE error
 [] combine and compare forecasts for multiple methods
-[] measure the error and plot
 [] extract emergent features

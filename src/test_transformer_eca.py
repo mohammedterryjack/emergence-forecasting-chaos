@@ -15,15 +15,15 @@ from utils.data_loader import generate_dataset
 
 
 lattice_width = 50
-forecast_length = 25
+forecast_length = 70
 rule_number=30
 encoder_option = EncoderOption.SPACETIME_AND_EMERGENCE
 ics = [
     1,
     682918332392260,
     511854315302018,
-    635621643137219,
-    26398899248128
+    #635621643137219,
+    #26398899248128
 ]
 batch_size = len(ics)
 n_epochs = 100
