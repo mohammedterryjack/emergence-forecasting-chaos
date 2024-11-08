@@ -14,10 +14,10 @@ forecast_length=70
 rule_number=30
 encoder_option = EncoderOption.SPACETIME_AND_EMERGENCE
 ics = [
-    1,
+    #1,
     682918332392260,
     511854315302018,
-    #635621643137219,
+    635621643137219,
     #26398899248128
 ]
 batch_size = len(ics)

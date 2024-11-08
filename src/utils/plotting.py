@@ -1,7 +1,7 @@
 from matplotlib.pyplot import subplots, show
 
 from utils.projection import projector
-from utils.evaluation import errors
+from utils.evaluation import errors, time_steps_for_good_forecast
 
 def plot_results(
     target:list[list[int]], 
@@ -33,6 +33,14 @@ def plot_results(
         batch_size=batch_size,
         lattice_width=lattice_width
     )    
+    
+    ts = time_steps_for_good_forecast(
+        errors=scores['mae'],
+        threshold=0.5,
+        batch_size=batch_size
+    )
+    print(ts)
+    
     _, axes = subplots(batch_size, 4, sharey=True)
     if batch_size==1:
         axes[0].set_title('Expected')
@@ -83,5 +91,4 @@ def plot_results(
 
         axes[-1, 2].legend(loc='lower center', bbox_to_anchor=(0.5, -0.15), ncol=2)
         axes[-1, 3].legend(loc='lower center', bbox_to_anchor=(0.5, -0.15), ncol=2)
-
     show()

@@ -1,6 +1,18 @@
-from numpy import array, clip, mean, log, ndarray
+from numpy import array, clip, mean, log, ndarray, where
 
 from utils.projection import cosine_similarity
+
+def time_steps_for_good_forecast(
+    errors:list[list[float]], 
+    threshold:float, 
+    batch_size:int
+) -> list[int]:
+    results = []
+    for b in range(batch_size):
+        indices = where(errors[b] > threshold)[0]
+        timesteps = indices[0] if indices.size > 0 else None
+        results.append(timesteps)
+    return results
 
 def bce(target:ndarray, predicted:ndarray, lattice_width:int, epsilon:float = 1e-15) -> ndarray:    
     target_probabilities = target/lattice_width
