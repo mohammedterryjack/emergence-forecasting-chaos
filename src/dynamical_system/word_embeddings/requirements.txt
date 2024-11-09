@@ -1,4 +1,0 @@
-nltk
-pandas
-scikit-learn
-datasets
