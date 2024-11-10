@@ -1,7 +1,86 @@
 from matplotlib.pyplot import subplots, show
+from numpy import array
 
 from utils.projection import projector
 from utils.evaluation import errors, time_steps_for_good_forecast
+
+def plot_results_with_emergence(
+    real:list[list[int]],
+    predicted:list[list[int]],
+    lattice_width:int,
+    emergence_filter:callable
+) -> None:
+    real = array(real)
+    predicted = array(predicted)
+    emergent_real = array(emergence_filter(real))
+    emergent_predicted = array(emergence_filter(predicted))
+    projected_real=[
+        projector(
+            embedding=vector,
+            lattice_width=lattice_width,
+        ) for vector in real
+    ]
+    projected_predicted=[
+        projector(
+            embedding=vector,
+            lattice_width=lattice_width,
+        ) for vector in predicted
+    ]
+    projected_emergent_real=[
+        projector(
+            embedding=vector,
+            lattice_width=lattice_width,
+        ) for vector in emergent_real
+    ]
+    projected_emergent_predicted=[
+        projector(
+            embedding=vector,
+            lattice_width=lattice_width,
+        ) for vector in emergent_predicted
+    ]
+
+    scores = errors(
+        target=[real],
+        predicted=[predicted],
+        batch_size=1,
+        lattice_width=lattice_width
+    )    
+    scores_emergent = errors(
+        target=[emergent_real],
+        predicted=[emergent_predicted],
+        batch_size=1,
+        lattice_width=lattice_width
+    )    
+
+    _, axes = subplots(5, 2, sharex=True)
+
+    axes[0,0].set_title('Spacetime')
+    axes[0,0].imshow(real.T, cmap='gray', aspect='auto')
+    axes[1,0].imshow(predicted.T, cmap='gray', aspect='auto')
+    axes[2,0].imshow(real.T, cmap='summer', alpha=0.5, aspect='auto')
+    axes[2,0].imshow(predicted.T, cmap='winter', alpha=0.5, aspect='auto')
+    axes[3,0].plot(projected_real, label='expected', color='b')
+    axes[3,0].plot(projected_predicted, label='predicted', linestyle=':', color='g')
+    axes[4,0].plot(scores['distance'][0], label='cosine distance', color='orange')
+    axes[4,0].plot(scores['mae'][0], label='MAE', color='r')
+    axes[4,0].plot(scores['rmse'][0], label='RMSE', color='gray')
+    axes[4,0].plot(scores['bce'][0], label='BCE', color='pink')
+
+    axes[0,1].set_title('Emergent Properties')
+    axes[0,1].imshow(emergent_real.T, cmap='gray', aspect='auto')
+    axes[1,1].imshow(emergent_predicted.T, cmap='gray', aspect='auto')
+    axes[2,1].imshow(emergent_real.T, cmap='summer', alpha=0.5, aspect='auto')
+    axes[2,1].imshow(emergent_predicted.T, cmap='winter', alpha=0.5, aspect='auto')
+    axes[3,1].plot(projected_emergent_real, label='expected', color='b')
+    axes[3,1].plot(projected_emergent_predicted, label='predicted', linestyle=':', color='g')
+    axes[3,1].legend(loc='lower center', bbox_to_anchor=(0.5, -0.15), ncol=1)
+    axes[4,1].plot(scores_emergent['distance'][0], label='cosine distance', color='orange')
+    axes[4,1].plot(scores_emergent['mae'][0], label='MAE', color='r')
+    axes[4,1].plot(scores_emergent['rmse'][0], label='RMSE', color='gray')
+    axes[4,1].plot(scores_emergent['bce'][0], label='BCE', color='pink')
+    axes[4,1].legend(loc='lower center', bbox_to_anchor=(0.5, -0.15), ncol=2)
+
+    show()
 
 def plot_results(
     target:list[list[int]], 
