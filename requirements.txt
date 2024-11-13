@@ -2,3 +2,6 @@ nltk
 pandas
 scikit-learn
 datasets
+JPype1
+numpy
+matplotlib

@@ -5,8 +5,8 @@ phd Thesis
 ## RUN:
 ```python
 
-python experiments/matrixfactorisation_eca.py
-python experiments/transformer_eca.py
+python src/matrixfactorisation_eca.py
+python src/transformer_eca.py
 ```
 
 ## TODO:
