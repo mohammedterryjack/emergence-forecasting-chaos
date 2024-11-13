@@ -10,5 +10,8 @@ python src/transformer_eca.py
 ```
 
 ## TODO:
-[] extract emergent features
-[] metrics
+[x] emergent metrics working
+[] add path to settings and environ variables etc
+[] include emergent features metrics to utils and then model predictions
+[] metrics complexity
+[] metrics chaos
