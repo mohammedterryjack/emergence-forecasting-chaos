@@ -9,7 +9,7 @@ from numpy import array
 from predictors.model_based_predictor.transformer import Transformer
 from predictors.model_based_predictor.train import train_model_with_target_embeddings
 from predictors.model_based_predictor.predict import predict_n_encoded
-from utils.encoder import eca_encoder, eca_decoder, EncoderOption
+from utils.encoder import eca_encoder, eca_decoder
 from utils.plotting import plot_results 
 from utils.data_loader import generate_dataset
 
@@ -17,7 +17,7 @@ from utils.data_loader import generate_dataset
 lattice_width = 50
 forecast_length = 70
 rule_number=30
-encoder_option = EncoderOption.SPACETIME_AND_EMERGENCE
+#encoder_option = EncoderOption.SPACETIME_AND_EMERGENCE
 ics = [
     #1,
     682918332392260,
@@ -46,12 +46,11 @@ model = Transformer(
     src_encoder=lambda index,array_size:eca_encoder(
         index=index,
         array_size=array_size,
-        option=encoder_option
+        #TODO: option=encoder_option
     ),
     tgt_encoder=lambda index,array_size:eca_encoder(
         index=index,
         array_size=array_size,
-        option=EncoderOption.SPACETIME_ONLY
     )
 )
 

@@ -3,7 +3,7 @@ from numpy import array
 from predictors.model_based_predictor.transformer import Transformer
 from predictors.model_based_predictor.train import train_model_with_target_embeddings
 from predictors.model_based_predictor.predict import predict_n_encoded
-from utils.encoder import eca_encoder, eca_decoder, EncoderOption
+from utils.encoder import eca_encoder, eca_decoder
 from utils.plotting import plot_results, plot_results_with_emergence
 from utils.data_loader import generate_dataset
 
@@ -46,7 +46,6 @@ test_data_encoded = [
         eca_encoder(
             index=index, 
             array_size=lattice_width,
-            option=EncoderOption.SPACETIME_ONLY
         ) for index in sequence
      ] for sequence in test_data
 ]
@@ -60,12 +59,10 @@ model_spacetime_only = Transformer(
     src_encoder=lambda index,array_size:eca_encoder(
         index=index,
         array_size=array_size,
-        option=EncoderOption.SPACETIME_ONLY
     ),
     tgt_encoder=lambda index,array_size:eca_encoder(
         index=index,
         array_size=array_size,
-        option=EncoderOption.SPACETIME_ONLY
     )
 )
 model_spacetime_and_emergence = Transformer(
@@ -75,12 +72,11 @@ model_spacetime_and_emergence = Transformer(
     src_encoder=lambda index,array_size:eca_encoder(
         index=index,
         array_size=array_size,
-        option=EncoderOption.SPACETIME_AND_EMERGENCE
+        #TODO: option=EncoderOption.SPACETIME_AND_EMERGENCE
     ),
     tgt_encoder=lambda index,array_size:eca_encoder(
         index=index,
         array_size=array_size,
-        option=EncoderOption.SPACETIME_ONLY
     )
 )
 model_emergence_only = Transformer(
@@ -90,12 +86,11 @@ model_emergence_only = Transformer(
     src_encoder=lambda index,array_size:eca_encoder(
         index=index,
         array_size=array_size,
-        option=EncoderOption.EMERGENCE_ONLY
+        #TODO: option=EncoderOption.EMERGENCE_ONLY
     ),
     tgt_encoder=lambda index,array_size:eca_encoder(
         index=index,
         array_size=array_size,
-        option=EncoderOption.SPACETIME_ONLY
     )
 )
 #--------Train models----------

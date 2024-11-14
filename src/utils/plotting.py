@@ -8,12 +8,12 @@ def plot_results_with_emergence(
     real:list[list[int]],
     predicted:list[list[int]],
     lattice_width:int,
-    emergence_filter:callable
+    emergence_spacetime_filter:callable
 ) -> None:
     real = array(real)
     predicted = array(predicted)
-    emergent_real = array(emergence_filter(real))
-    emergent_predicted = array(emergence_filter(predicted))
+    emergent_real = array(emergence_spacetime_filter(real))
+    emergent_predicted = array(emergence_spacetime_filter(predicted))
     projected_real=[
         projector(
             embedding=vector,

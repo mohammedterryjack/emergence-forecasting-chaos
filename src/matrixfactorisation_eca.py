@@ -5,14 +5,14 @@ from predictors.model_free_predictor.matrix_factorisation import (
     construct_memory_efficient_sparse_correlation_matrix,
     predict_n
 )
-from utils.encoder import eca_encoder, EncoderOption
+from utils.encoder import eca_encoder
 from utils.plotting import plot_results 
 from utils.data_loader import generate_dataset
 
 lattice_width=50
 forecast_length=70
 rule_number=30
-encoder_option = EncoderOption.SPACETIME_AND_EMERGENCE
+#TODO: encoder_option = EncoderOption.SPACETIME_AND_EMERGENCE
 ics = [
     #1,
     682918332392260,
@@ -44,7 +44,7 @@ current_vectors = array([
     eca_encoder(
         index=index, 
         array_size=lattice_width,
-        option=encoder_option
+        #TODO:option=encoder_option
     ) for index in new_index_mapping 
 ])
 
@@ -59,10 +59,10 @@ for b in range(batch_size):
         n=forecast_length,
         seed_index=new_index_mapping.index(target_data[b][0]),
         trained_embeddings=next_vectors,
-        index_to_vector=lambda index: eca_encoder(
-            index=new_index_mapping[index], 
+        index_sequence_to_vector=lambda sequence: eca_encoder(
+            index=new_index_mapping[sequence[-1]], 
             array_size=lattice_width,
-            option=encoder_option
+            #TODO:option=encoder_option
         )
     ))
     predicted_data.append(predicted_indexes)
@@ -72,7 +72,6 @@ predicted_data_vectors = [
         eca_encoder(
             index=new_index_mapping[index], 
             array_size=lattice_width,
-            option=EncoderOption.SPACETIME_ONLY
         ) for index in predicted_data[b]
      ] for b in range(batch_size)
 ]
@@ -82,7 +81,6 @@ target_data_vectors = [
         eca_encoder(
             index=index, 
             array_size=lattice_width,
-            option=EncoderOption.SPACETIME_ONLY
         ) for index in target_data[b]
      ] for b in range(batch_size)
 ]
@@ -117,10 +115,10 @@ for b in range(batch_size):
         n=forecast_length,
         seed_index=new_index_mapping.index(ic),
         trained_embeddings=next_vectors,
-        index_to_vector=lambda index: eca_encoder(
-            index=new_index_mapping[index], 
+        index_sequence_to_vector=lambda sequence: eca_encoder(
+            index=new_index_mapping[sequence[-1]], 
             array_size=lattice_width,
-            option=encoder_option
+            #TODO: option=encoder_option
         )
     ))
     test_predicted_data.append(test_predicted_indexes)
@@ -130,7 +128,6 @@ test_predicted_data_vectors = [
         eca_encoder(
             index=new_index_mapping[index], 
             array_size=lattice_width,
-            option=EncoderOption.SPACETIME_ONLY
         ) for index in test_predicted_data[b]
      ] for b in range(batch_size)
 ]
@@ -140,7 +137,6 @@ test_target_data_vectors = [
         eca_encoder(
             index=index, 
             array_size=lattice_width,
-            option=EncoderOption.SPACETIME_ONLY
         ) for index in test_target_data[b]
      ] for b in range(batch_size)
 ]

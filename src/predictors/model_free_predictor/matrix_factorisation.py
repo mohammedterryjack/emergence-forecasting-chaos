@@ -78,10 +78,12 @@ def predict_next(x:ndarray, trained_embeddings:ndarray) -> ndarray:
     y = x @ trained_embeddings
     return y.argmax()
 
-def predict_n(seed_index:int, n:int, index_to_vector:callable, trained_embeddings:ndarray) -> Generator[tuple[int,ndarray],None,None]:
+def predict_n(seed_index:int, n:int, index_sequence_to_vector:callable, trained_embeddings:ndarray) -> Generator[tuple[int,ndarray],None,None]:
+    indexes = []
     index = seed_index 
     for _ in range(n):
-        vector = index_to_vector(index=index)
+        indexes.append(index)
+        vector = index_sequence_to_vector(sequence=indexes)
         yield index, vector
         index = predict_next(
             x=vector,

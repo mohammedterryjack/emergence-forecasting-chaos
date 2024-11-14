@@ -5,3 +5,4 @@ datasets
 JPype1
 numpy
 matplotlib
+python-dotenv

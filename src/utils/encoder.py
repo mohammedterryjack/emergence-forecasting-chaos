@@ -2,28 +2,30 @@ from enum import Enum
 from numpy import ndarray, array
 
 from dynamical_system.eca.elementary_cellular_automata import ElementaryCellularAutomata
+from metrics.emergence import TransferEntropy, IntegratedInformation
 
-class EncoderOption(Enum):
-    SPACETIME_ONLY=0
-    EMERGENCE_ONLY=1
-    SPACETIME_AND_EMERGENCE=2
 
 def eca_encoder(
-    index:int, 
-    array_size:int, 
-    option:EncoderOption,
+    index:int, array_size:int
 ) -> ndarray:
-    binary_lattice = array(ElementaryCellularAutomata.create_binary_lattice_from_number(
+    return array(ElementaryCellularAutomata.create_binary_lattice_from_number(
         state_number=index,
         lattice_width=array_size
     ))
-    if option == EncoderOption.SPACETIME_ONLY:
-        return binary_lattice
-    #TODO: get real emergent features
-    emergent_features = [0.0 for _ in range(array_size)]    
-    if option == EncoderOption.EMERGENCE_ONLY:
-        return emergent_features
-    return binary_lattice + emergent_features
+
+def eca_and_emergence_encoder(
+    sequence:list[int], array_size:int, max_historical_context_length:int=7
+) -> tuple[ndarray,ndarray]:
+    historical_context_length = min(len(sequence),max_historical_context_length)
+    emergence_filter = IntegratedInformation(k=historical_context_length) #TransferEntropy(k=historical_context_length)
+
+    evolution = array([
+        eca_encoder(index=index,array_size=array_size)
+        for index in sequence
+    ])
+    filtered_evolution = emergence_filter.emergence_filter(evolution=evolution)
+    return evolution[-1],filtered_evolution[-1]
+
 
 def eca_decoder(lattice:list[float], binary_threshold:float) -> int:
     binary_lattice = (lattice>binary_threshold).astype(int).tolist()
