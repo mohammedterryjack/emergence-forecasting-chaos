@@ -5,14 +5,14 @@ from numpy import array, concatenate
 from predictors.model_based_predictor.transformer import Transformer
 from predictors.model_based_predictor.train import train_model_with_target_embeddings
 from predictors.model_based_predictor.predict import predict_n_encoded
-from utils.encoder import eca_encoder, eca_decoder
+from utils.encoder import eca_encoder, eca_decoder, eca_and_emergence_encoder
 from utils.plotting import plot_results, plot_results_with_emergence
 from utils.data_loader import generate_dataset
 
 
 #--------Generate Train, Test Data----------
 
-lattice_width=50
+lattice_width=filtered_lattice_width=50
 forecast_length=100
 rule_number=3
 ics = [
@@ -22,6 +22,7 @@ ics = [
 ]
 batch_size = len(ics)
 n_epochs = 100
+emergence_filter_context_history= 7
 
 train_context_data, train_data = generate_dataset(
     rule_number=rule_number,
@@ -58,40 +59,23 @@ model_spacetime_only = Transformer(
     src_vocab_size= lattice_width, 
     tgt_vocab_size=lattice_width, 
     max_seq_length=forecast_length, 
-    src_encoder=lambda index,array_size:eca_encoder(
-        index=index,
-        array_size=array_size,
-    ),
-    tgt_encoder=lambda index,array_size:eca_encoder(
-        index=index,
-        array_size=array_size,
-    )
+    src_encoder=eca_encoder,
+    tgt_encoder=eca_encoder,
 )
 model_spacetime_and_emergence = Transformer(
-    src_vocab_size= lattice_width, 
+    src_vocab_size= lattice_width+filtered_lattice_width, 
     tgt_vocab_size=lattice_width, 
     max_seq_length=forecast_length, 
-    src_encoder=lambda index,array_size:eca_encoder(
-        index=index,
-        array_size=array_size,
-    ),
-    tgt_encoder=lambda index,array_size:eca_encoder(
-        index=index,
-        array_size=array_size,
-    )
+    src_encoder=eca_encoder, #TODO: update this to sum(eca_and_emergence_encoder)
+    tgt_encoder=eca_encoder,
 )
+
 model_emergence_only = Transformer(
     src_vocab_size= lattice_width, 
     tgt_vocab_size=lattice_width, 
     max_seq_length=forecast_length, 
-    src_encoder=lambda index,array_size:eca_encoder(
-        index=index,
-        array_size=array_size,
-    ),
-    tgt_encoder=lambda index,array_size:eca_encoder(
-        index=index,
-        array_size=array_size,
-    )
+    src_encoder=eca_encoder, #TODO: update this to eca_and_emergence_encoder[-1]
+    tgt_encoder=eca_encoder,
 )
 #--------Train models----------
 

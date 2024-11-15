@@ -43,14 +43,8 @@ model = Transformer(
     src_vocab_size= lattice_width, 
     tgt_vocab_size=lattice_width, 
     max_seq_length=forecast_length, 
-    src_encoder=lambda index,array_size:eca_encoder(
-        index=index,
-        array_size=array_size,
-    ),
-    tgt_encoder=lambda index,array_size:eca_encoder(
-        index=index,
-        array_size=array_size,
-    )
+    src_encoder=eca_encoder,
+    tgt_encoder=eca_encoder,
 )
 
 train_model_with_target_embeddings( 

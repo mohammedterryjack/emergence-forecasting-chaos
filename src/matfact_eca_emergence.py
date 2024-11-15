@@ -63,7 +63,6 @@ current_vectors_encoded_without_emergence = array([
         array_size=lattice_width,
     ) for index in new_index_mapping 
 ])
-#TODO: the emergent properties shouldnt be taking the history into account for these - its not in order
 current_vectors_encoded_with_emergence = array([
     concatenate(eca_and_emergence_encoder(
         sequence=[index]*7,
