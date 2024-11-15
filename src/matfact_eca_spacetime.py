@@ -12,7 +12,7 @@ from utils.data_loader import generate_dataset
 lattice_width=50
 forecast_length=70
 rule_number=30
-#TODO: encoder_option = EncoderOption.SPACETIME_AND_EMERGENCE
+
 ics = [
     #1,
     682918332392260,
@@ -44,7 +44,6 @@ current_vectors = array([
     eca_encoder(
         index=index, 
         array_size=lattice_width,
-        #TODO:option=encoder_option
     ) for index in new_index_mapping 
 ])
 
@@ -62,7 +61,6 @@ for b in range(batch_size):
         index_sequence_to_vector=lambda sequence: eca_encoder(
             index=new_index_mapping[sequence[-1]], 
             array_size=lattice_width,
-            #TODO:option=encoder_option
         )
     ))
     predicted_data.append(predicted_indexes)
@@ -118,7 +116,6 @@ for b in range(batch_size):
         index_sequence_to_vector=lambda sequence: eca_encoder(
             index=new_index_mapping[sequence[-1]], 
             array_size=lattice_width,
-            #TODO: option=encoder_option
         )
     ))
     test_predicted_data.append(test_predicted_indexes)

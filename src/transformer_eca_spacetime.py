@@ -46,7 +46,6 @@ model = Transformer(
     src_encoder=lambda index,array_size:eca_encoder(
         index=index,
         array_size=array_size,
-        #TODO: option=encoder_option
     ),
     tgt_encoder=lambda index,array_size:eca_encoder(
         index=index,
@@ -79,7 +78,6 @@ target_data_encoded=[
         eca_encoder(
             index=i,
             array_size=lattice_width,
-            option=EncoderOption.SPACETIME_ONLY
         ) for i in target_data[b]
     ]
     for b in range(batch_size)
@@ -131,7 +129,6 @@ test_target_data_encoded=[
         eca_encoder(
             index=i,
             array_size=lattice_width,
-            option=EncoderOption.SPACETIME_ONLY
         ) for i in test_target_data[b]
     ]
     for b in range(batch_size)

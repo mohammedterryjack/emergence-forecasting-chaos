@@ -5,15 +5,16 @@ from utils.projection import projector
 from utils.evaluation import errors, time_steps_for_good_forecast
 
 def plot_results_with_emergence(
-    real:list[list[int]],
-    predicted:list[list[int]],
+    title_text:str,
+    real_spacetime_evolution:list[list[int]],
+    predicted_spacetime_evolution:list[list[int]],
     lattice_width:int,
-    emergence_spacetime_filter:callable
+    filter_spacetime_evolution:callable
 ) -> None:
-    real = array(real)
-    predicted = array(predicted)
-    emergent_real = array(emergence_spacetime_filter(real))
-    emergent_predicted = array(emergence_spacetime_filter(predicted))
+    real = array(real_spacetime_evolution)
+    predicted = array(predicted_spacetime_evolution)
+    emergent_real = filter_spacetime_evolution(real)
+    emergent_predicted = filter_spacetime_evolution(predicted)
     projected_real=[
         projector(
             embedding=vector,
@@ -38,7 +39,6 @@ def plot_results_with_emergence(
             lattice_width=lattice_width,
         ) for vector in emergent_predicted
     ]
-
     scores = errors(
         target=[real],
         predicted=[predicted],
@@ -52,7 +52,8 @@ def plot_results_with_emergence(
         lattice_width=lattice_width
     )    
 
-    _, axes = subplots(5, 2, sharex=True)
+    fig, axes = subplots(5, 2, sharex=True)
+    fig.suptitle(title_text, fontsize=16)
 
     axes[0,0].set_title('Spacetime')
     axes[0,0].imshow(real.T, cmap='gray', aspect='auto')
@@ -118,7 +119,7 @@ def plot_results(
         threshold=0.5,
         batch_size=batch_size
     )
-    print(ts)
+    #print(ts)
     
     _, axes = subplots(batch_size, 5, sharey=True)
     if batch_size==1:

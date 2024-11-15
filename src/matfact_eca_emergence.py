@@ -1,4 +1,4 @@
-from numpy import array
+from numpy import array, concatenate
 
 from predictors.model_free_predictor.matrix_factorisation import (
     matrix_factorisation_pseudo_inverse, 
@@ -15,7 +15,7 @@ from utils.data_loader import generate_dataset
 
 lattice_width=50
 forecast_length=100
-rule_number=3
+rule_number=30
 ics = [
 #    682918332392260,
     511854315302018,
@@ -51,28 +51,12 @@ test_data_encoded = [
      ] for sequence in test_data
 ]
 
-# spacetime_only, emergence_only, both = [],[],[]
-# for t in range(1,forecast_length+1): 
-#     s,e = eca_and_emergence_encoder(
-#         sequence=test_data[0][:t],
-#         array_size=lattice_width
-#     ) 
-#     spacetime_only.append(s)
-#     emergence_only.append(e)
-#     both.append(sum(s,e))
-
-# from matplotlib.pyplot import imshow, show
-# imshow(spacetime_only)
-# show()
-# imshow(emergence_only)
-# show()
-# imshow(both)
-# show()
-
 #------Setup models--------
 matrix_mapping_current_id_to_next_id,new_index_mapping = construct_memory_efficient_sparse_correlation_matrix(
     indexes=array(train_data).reshape(-1)
 )
+
+
 current_vectors_encoded_without_emergence = array([
     eca_encoder(
         index=index, 
@@ -81,16 +65,16 @@ current_vectors_encoded_without_emergence = array([
 ])
 #TODO: the emergent properties shouldnt be taking the history into account for these - its not in order
 current_vectors_encoded_with_emergence = array([
-    sum(eca_and_emergence_encoder(
-        sequence=new_index_mapping[:t],
+    concatenate(eca_and_emergence_encoder(
+        sequence=[index]*7,
         array_size=lattice_width
-    )) for t in range(1,forecast_length+1)
+    )) for index in new_index_mapping
 ])
 current_vectors_encoded_only_emergence = array([
     eca_and_emergence_encoder(
-        sequence=new_index_mapping[:t],
+        sequence=[index]*7,
         array_size=lattice_width
-    )[-1] for t in range(1,forecast_length+1)
+    )[-1] for index in new_index_mapping
 ])
 
 #--------Train models----------
@@ -136,19 +120,18 @@ for test_ic in test_ics:
         n=forecast_length,
         seed_index=new_index_mapping.index(test_ic),
         trained_embeddings=next_vectors_encoded_with_emergence,
-        index_sequence_to_vector=lambda sequence: sum(eca_and_emergence_encoder(
+        index_sequence_to_vector=lambda sequence: concatenate(eca_and_emergence_encoder(
             sequence=[new_index_mapping[i] for i in sequence],
             array_size=lattice_width
         ))        
     ))
 
     predicted_vectors = [
-        eca_encoder(
-            index=new_index_mapping[index], 
-            array_size=lattice_width,
-            #option=encoder_option
-        ) for index in predicted_indexes
-     ]
+       eca_encoder(
+           index=new_index_mapping[index], 
+           array_size=lattice_width,
+       ) for index in predicted_indexes
+    ]
     predicted_data_with_emergence.append(predicted_vectors)
 
 predicted_data_only_emergence = []
@@ -166,7 +149,6 @@ for test_ic in test_ics:
         eca_encoder(
             index=new_index_mapping[index], 
             array_size=lattice_width,
-            #option=encoder_option
         ) for index in predicted_indexes
      ]
     predicted_data_only_emergence.append(predicted_vectors)
@@ -174,20 +156,23 @@ for test_ic in test_ics:
 #------Display results--------
 
 plot_results_with_emergence(
-    real=test_data_encoded[0],
-    predicted=predicted_data_without_emergence[0],
-    emergence_spacetime_filter=lambda spacetime:IntegratedInformation(k=7).emergence_filter(evolution=spacetime),
+    title_text="Spacetime Only",
+    real_spacetime_evolution=test_data_encoded[0],
+    predicted_spacetime_evolution=predicted_data_without_emergence[0],
     lattice_width=lattice_width,
+    filter_spacetime_evolution=lambda spacetime:IntegratedInformation(k=7).emergence_filter(spacetime),
 )
 plot_results_with_emergence(
-    real=test_data_encoded[0],
-    predicted=predicted_data_with_emergence[0],
-    emergence_spacetime_filter=lambda spacetime:IntegratedInformation(k=7).emergence_filter(evolution=spacetime),
+    title_text="Spacetime and Emergent Properties",
+    real_spacetime_evolution=test_data_encoded[0],
+    predicted_spacetime_evolution=predicted_data_with_emergence[0],
     lattice_width=lattice_width,
+    filter_spacetime_evolution=lambda spacetime:IntegratedInformation(k=7).emergence_filter(spacetime),
 )
 plot_results_with_emergence(
-    real=test_data_encoded[0],
-    predicted=predicted_data_only_emergence[0],
-    emergence_spacetime_filter=lambda spacetime:IntegratedInformation(k=7).emergence_filter(evolution=spacetime),
+    title_text="Emergent Properties Only",
+    real_spacetime_evolution=test_data_encoded[0],
+    predicted_spacetime_evolution=predicted_data_only_emergence[0],
     lattice_width=lattice_width,
+    filter_spacetime_evolution=lambda spacetime:IntegratedInformation(k=7).emergence_filter(spacetime),
 )

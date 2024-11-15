@@ -1,4 +1,6 @@
-from numpy import array
+#TODO
+
+from numpy import array, concatenate
 
 from predictors.model_based_predictor.transformer import Transformer
 from predictors.model_based_predictor.train import train_model_with_target_embeddings
@@ -72,7 +74,6 @@ model_spacetime_and_emergence = Transformer(
     src_encoder=lambda index,array_size:eca_encoder(
         index=index,
         array_size=array_size,
-        #TODO: option=EncoderOption.SPACETIME_AND_EMERGENCE
     ),
     tgt_encoder=lambda index,array_size:eca_encoder(
         index=index,
@@ -86,7 +87,6 @@ model_emergence_only = Transformer(
     src_encoder=lambda index,array_size:eca_encoder(
         index=index,
         array_size=array_size,
-        #TODO: option=EncoderOption.EMERGENCE_ONLY
     ),
     tgt_encoder=lambda index,array_size:eca_encoder(
         index=index,
