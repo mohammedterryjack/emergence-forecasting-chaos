@@ -17,7 +17,6 @@ from utils.data_loader import generate_dataset
 lattice_width = 50
 forecast_length = 70
 rule_number=30
-#encoder_option = EncoderOption.SPACETIME_AND_EMERGENCE
 ics = [
     #1,
     682918332392260,
@@ -44,7 +43,15 @@ model = Transformer(
     tgt_vocab_size=lattice_width, 
     max_seq_length=forecast_length, 
     src_encoder=eca_encoder,
+    #src_encoder=lambda indexes,array_size:eca_encoder(
+    #    index=indexes[-1],
+    #    array_size=array_size
+    #),
     tgt_encoder=eca_encoder,
+    #tgt_encoder=lambda indexes,array_size:eca_encoder(
+    #    index=indexes[-1],
+    #    array_size=array_size
+    #),
 )
 
 train_model_with_target_embeddings( 
@@ -78,13 +85,14 @@ target_data_encoded=[
 ]
 
 predicted_data_encoded = array([
-    [
-        model.encoder_embedding.index_encoder(
-            index=i,
-            array_size=model.encoder_embedding.vocab_size
-        ) for i in predicted_data[b]
-    ]
-    for b in range(batch_size)
+   [
+       model.encoder_embedding.index_encoder(
+           index=i,
+           #indexes=[i],
+           array_size=model.encoder_embedding.vocab_size
+       ) for i in predicted_data[b]
+   ]
+   for b in range(batch_size)
 ])
 
 
@@ -132,11 +140,13 @@ test_predicted_data_encoded = array([
     [
         model.encoder_embedding.index_encoder(
             index=i,
+            #indexes=[i],
             array_size=model.encoder_embedding.vocab_size
         ) for i in test_predicted_data[b]
     ]
     for b in range(batch_size)
 ])
+
 
 
 plot_results(
