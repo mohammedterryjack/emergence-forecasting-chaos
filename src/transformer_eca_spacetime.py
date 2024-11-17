@@ -42,16 +42,16 @@ model = Transformer(
     src_vocab_size= lattice_width, 
     tgt_vocab_size=lattice_width, 
     max_seq_length=forecast_length, 
-    src_encoder=eca_encoder,
-    #src_encoder=lambda indexes,array_size:eca_encoder(
-    #    index=indexes[-1],
-    #    array_size=array_size
-    #),
-    tgt_encoder=eca_encoder,
-    #tgt_encoder=lambda indexes,array_size:eca_encoder(
-    #    index=indexes[-1],
-    #    array_size=array_size
-    #),
+    #src_encoder=eca_encoder,
+    #tgt_encoder=eca_encoder,
+    src_encoder=lambda indexes,array_size:eca_encoder(
+        index=indexes[-1],
+        array_size=array_size
+    ),
+    tgt_encoder=lambda indexes,array_size:eca_encoder(
+        index=indexes[-1],
+        array_size=array_size
+    ),
 )
 
 train_model_with_target_embeddings( 
@@ -87,8 +87,7 @@ target_data_encoded=[
 predicted_data_encoded = array([
    [
        model.encoder_embedding.index_encoder(
-           index=i,
-           #indexes=[i],
+           indexes=[i],
            array_size=model.encoder_embedding.vocab_size
        ) for i in predicted_data[b]
    ]
@@ -139,8 +138,7 @@ test_target_data_encoded=[
 test_predicted_data_encoded = array([
     [
         model.encoder_embedding.index_encoder(
-            index=i,
-            #indexes=[i],
+            indexes=[i],
             array_size=model.encoder_embedding.vocab_size
         ) for i in test_predicted_data[b]
     ]

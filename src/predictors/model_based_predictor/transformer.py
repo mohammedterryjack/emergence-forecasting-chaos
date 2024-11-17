@@ -125,16 +125,12 @@ class InputLayer(Module):
         input_encoded = zeros((batch_size, seq_length, self.vocab_size))
         for i in range(batch_size):
             for j in range(seq_length):
-                index = input[i][j]
                 input_encoded[i][j] = tensor(
-                    self.index_encoder(index=index, array_size=self.vocab_size)
+                    self.index_encoder(
+                        indexes=input[i][:j+1].numpy(), #index=input[i][j]
+                        array_size=self.vocab_size
+                    )
                 )
-                #input_encoded[i][:j+1] = tensor(
-                #    self.index_encoder(
-                #        indexes=input[i][:j+1].numpy(),
-                #        array_size=self.vocab_size
-                #    )
-                #)
         return input_encoded
 
 
