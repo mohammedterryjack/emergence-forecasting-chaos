@@ -16,7 +16,7 @@ lattice_width=50
 emergence_context_length = 7
 transformer_context_length = 15
 forecast_length=100
-rule_number=30
+rule_number=3
 ics = [
     682918332392260,
 #    511854315302018,
@@ -113,7 +113,7 @@ predicted_spacetime_only_a = predict_n_encoded(
         binary_threshold=0.0
     )
 )
-
+#TODO: for context use last 15 of the prev prediction - and then seed with final prediction
 predicted_spacetime_only_b = predict_n_encoded(
     model=model_spacetime_only, 
     source=train_data[:,-emergence_context_length:],
